@@ -7,20 +7,23 @@ class WText extends StatelessWidget {
     super.key,
     required this.isi,
     this.fw = FontWeight.normal, // Default: Normal
+    this.color = AppColor.text, // Default: Normal
     this.ukuranFont = 18,
-    this.style,
+    this.align,
   });
   final String isi;
   final FontWeight fw;
+  final Color color;
   final double ukuranFont;
-  final TextStyle? style;
+  final TextAlign? align;
   @override
   Widget build(BuildContext context) {
     return Text(
       isi,
+      textAlign: align ?? TextAlign.center,
       style: GoogleFonts.poppins(
         fontSize: ukuranFont,
-        color: AppColor.text,
+        color: color,
         fontWeight: fw,
       ),
     );
