@@ -1,10 +1,14 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_ambilin/ui/screens/create_kebun.dart';
+import 'package:frontend_ambilin/ui/screens/create_tandon.dart';
+import 'package:frontend_ambilin/ui/screens/edit_profile_page.dart';
 import 'package:frontend_ambilin/ui/screens/main_page.dart';
 import 'package:frontend_ambilin/ui/screens/login_page.dart';
 import 'package:frontend_ambilin/ui/screens/register_page.dart';
 import 'package:frontend_ambilin/ui/screens/splash.dart';
+import 'package:frontend_ambilin/ui/screens/tandon_page.dart';
 // import 'package:frontend_ambilin/utils/app_colors.dart';
 import 'package:frontend_ambilin/utils/app_routes.dart';
 
@@ -27,7 +31,11 @@ class MyApp extends StatelessWidget {
         AppRoutes.splash: (context) => SplashScreen(),
         AppRoutes.login: (context) => LoginPage(),
         AppRoutes.register: (context) => RegisterPage(),
+        AppRoutes.editProfile: (context) => EditProfilePage(),
         AppRoutes.main: (context) => MainPage(),
+        AppRoutes.tambahKebun: (context) => CreateKebun(),
+        AppRoutes.tandonIndex: (context) => TandonPage(),
+        AppRoutes.tandonCreate: (context) => CreateTandon(),
       },
     );
   }

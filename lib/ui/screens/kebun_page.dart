@@ -4,6 +4,7 @@ import 'package:frontend_ambilin/ui/widgets/w_header.dart';
 import 'package:frontend_ambilin/ui/widgets/w_kebun_card.dart';
 import 'package:frontend_ambilin/ui/widgets/w_null_kebuntandon.dart';
 import 'package:frontend_ambilin/utils/app_colors.dart';
+import 'package:frontend_ambilin/utils/app_routes.dart';
 // import 'package:frontend_ambilin/ui/widgets/w_null_kebuntandon.dart';
 
 class KebunPage extends StatefulWidget {
@@ -14,7 +15,7 @@ class KebunPage extends StatefulWidget {
 }
 
 class _KebunPageState extends State<KebunPage> {
-  bool adaKebun = false;
+  bool adaKebun = true;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,7 +25,12 @@ class _KebunPageState extends State<KebunPage> {
           WHeader(judul: "Kebunku", deskripsi: "Kelola kebun dan tandon Anda"),
           SizedBox(height: 20),
           adaKebun
-              ? WKebunCard(namaKebun: "Kebun Depan")
+              ? GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(context, AppRoutes.tandonIndex);
+                  },
+                  child: WKebunCard(namaKebun: "Kebun Depan"),
+                )
               : WNullKebuntandon(
                   keterangan: "Belum Ada Kebun",
                   deskripsi:
@@ -34,7 +40,9 @@ class _KebunPageState extends State<KebunPage> {
         ],
       ),
       floatingActionButton: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.pushNamed(context, AppRoutes.tambahKebun);
+        },
         style: ButtonStyle(
           padding: WidgetStatePropertyAll(
             EdgeInsets.symmetric(horizontal: 15, vertical: 20),

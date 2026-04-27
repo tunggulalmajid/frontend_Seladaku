@@ -41,8 +41,33 @@ class WTandonCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          WText(isi: namaKebun, fw: FontWeight.w400, ukuranFont: 14),
-          WText(isi: namaTandon, fw: FontWeight.bold, ukuranFont: 24),
+          Row(
+            mainAxisAlignment: .spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: .start,
+                children: [
+                  WText(
+                    isi: namaKebun,
+                    fw: FontWeight.w400,
+                    ukuranFont: 14,
+                    align: .start,
+                  ),
+                  WText(isi: namaTandon, fw: FontWeight.bold, ukuranFont: 24),
+                ],
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: CircleAvatar(
+                  backgroundColor: AppColor.greenStatus,
+                  child: Icon(
+                    Icons.power_settings_new,
+                    color: AppColor.background,
+                  ),
+                ),
+              ),
+            ],
+          ),
 
           const SizedBox(height: 5),
 

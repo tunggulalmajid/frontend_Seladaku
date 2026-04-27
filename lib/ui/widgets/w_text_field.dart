@@ -35,6 +35,7 @@ class _WTextFieldState extends State<WTextField> {
       obscureText: _obscureText,
       style: GoogleFonts.poppins(color: AppColor.text),
       decoration: InputDecoration(
+        //label text belum dimasukkan
         hintText: widget.hintText,
         fillColor: AppColor.primaryAccent,
         filled: true,

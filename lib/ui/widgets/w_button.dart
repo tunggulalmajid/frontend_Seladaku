@@ -7,6 +7,7 @@ class WButton extends StatelessWidget {
   final VoidCallback onPressed;
   final Color? backgroundColor;
   final Color? textColor;
+  final double? textSize;
 
   const WButton({
     super.key,
@@ -14,6 +15,7 @@ class WButton extends StatelessWidget {
     required this.onPressed,
     this.backgroundColor,
     this.textColor,
+    this.textSize,
   });
 
   @override
@@ -35,7 +37,7 @@ class WButton extends StatelessWidget {
           text,
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
-            fontSize: 20,
+            fontSize: textSize ?? 20,
             color: textColor ?? AppColor.background,
           ),
         ),
