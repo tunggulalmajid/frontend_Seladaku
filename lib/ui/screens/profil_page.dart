@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_ambilin/ui/widgets/w_header.dart';
 import 'package:frontend_ambilin/ui/widgets/w_text.dart';
 import 'package:frontend_ambilin/utils/app_colors.dart';
 import 'package:frontend_ambilin/utils/app_routes.dart';
@@ -13,8 +14,12 @@ class ProfilPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         children: [
-          const SizedBox(height: 50),
-
+          SizedBox(height: 70),
+          WHeader(
+            judul: "Profil",
+            deskripsi: "Pastikan Data Dirimu Sudah Terisi",
+          ),
+          SizedBox(height: 25),
           Center(
             child: Container(
               padding: const EdgeInsets.all(4),
@@ -115,7 +120,7 @@ class ProfilPage extends StatelessWidget {
         const WText(isi: ": ", ukuranFont: 14),
         Expanded(
           child: WText(
-            isi: value,
+            isi: " $value",
             align: TextAlign.start,
             ukuranFont: 14,
             color: const Color(0xFF80CBC4),

@@ -13,7 +13,9 @@ class CreateTandon extends StatefulWidget {
 }
 
 class _CreateTandonState extends State<CreateTandon> {
-  final TextEditingController namaKebunController = TextEditingController();
+  final TextEditingController namaTandonController = TextEditingController();
+  final TextEditingController tanggalController =
+      TextEditingController(); //kayaknya pakai datepicker
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,22 +36,49 @@ class _CreateTandonState extends State<CreateTandon> {
           crossAxisAlignment: .start,
           children: [
             SizedBox(height: 10),
-            WText(isi: "Nama Kebun", align: .start, fw: .bold, ukuranFont: 15),
-            SizedBox(height: 5),
-            WTextField(
-              hintText: "Masukkan Nama Tandon",
-              controller: namaKebunController,
+            Column(
+              crossAxisAlignment: .start,
+              children: [
+                WText(
+                  isi: "Nama Tandon",
+                  align: .start,
+                  fw: .bold,
+                  ukuranFont: 15,
+                ),
+                SizedBox(height: 5),
+                WTextField(
+                  hintText: "Masukkan Nama Tandon",
+                  controller: namaTandonController,
+                ),
+              ],
             ),
-            SizedBox(height: 15),
+            SizedBox(height: 20),
+            Column(
+              crossAxisAlignment: .start,
+              children: [
+                WText(
+                  isi: "Tanggal Tanam",
+                  align: .start,
+                  fw: .bold,
+                  ukuranFont: 15,
+                ),
+                SizedBox(height: 5),
+                WTextField(
+                  hintText: "Tanggal Tanam",
+                  controller: tanggalController,
+                ),
+              ],
+            ),
+            SizedBox(height: 25),
             WButton(
-              text: "Simpan Kebun",
+              text: "Simpan Tandon",
               onPressed: () {
                 showDialog(
                   context: context,
                   barrierDismissible: false, // User wajib tekan tombol OK
                   builder: (BuildContext context) {
                     return WSuccessDialog(
-                      message: "Data kebun berhasil diubah dan disimpan",
+                      message: "Data Tandon disimpan",
                       onOkPressed: () {
                         Navigator.of(context).pop(); // Tutup Dialog
                         Navigator.of(context).pop(); // Tutup Dialog

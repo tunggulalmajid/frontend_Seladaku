@@ -7,4 +7,5 @@ class AppRoutes {
   static const String tambahKebun = '/kebun/tambah';
   static const String tandonIndex = '/tandon';
   static const String tandonCreate = '/tandon/create';
+  static const String detailTandon = '/tandon/show';
 }

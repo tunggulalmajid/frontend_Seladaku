@@ -13,7 +13,10 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  final TextEditingController namaKebunController = TextEditingController();
+  final TextEditingController namaController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController nomorTeleponController = TextEditingController();
+  final TextEditingController alamatController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,22 +47,69 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
             ),
             SizedBox(height: 10),
-            WText(isi: "Nama Kebun", align: .start, fw: .bold, ukuranFont: 15),
-            SizedBox(height: 5),
-            WTextField(
-              hintText: "Masukkan Nama Kebun",
-              controller: namaKebunController,
+            Column(
+              crossAxisAlignment: .start,
+              children: [
+                WText(
+                  isi: "Nama Lengkap",
+                  align: .start,
+                  fw: .bold,
+                  ukuranFont: 15,
+                ),
+                SizedBox(height: 5),
+                WTextField(
+                  hintText: "Nama Lengkap",
+                  controller: namaController,
+                ),
+              ],
             ),
             SizedBox(height: 15),
+            Column(
+              crossAxisAlignment: .start,
+              children: [
+                WText(isi: "Email", align: .start, fw: .bold, ukuranFont: 15),
+                SizedBox(height: 5),
+                WTextField(hintText: "Email", controller: emailController),
+              ],
+            ),
+            SizedBox(height: 15),
+            Column(
+              crossAxisAlignment: .start,
+              children: [
+                WText(
+                  isi: "Nomor Telepon",
+                  align: .start,
+                  fw: .bold,
+                  ukuranFont: 15,
+                ),
+                SizedBox(height: 5),
+                WTextField(
+                  hintText: "Nomor Telepon",
+                  controller: nomorTeleponController,
+                ),
+              ],
+            ),
+            SizedBox(height: 15),
+            Column(
+              crossAxisAlignment: .start,
+              children: [
+                WText(isi: "Alamat", align: .start, fw: .bold, ukuranFont: 15),
+                SizedBox(height: 5),
+                WTextField(hintText: "Alamat", controller: alamatController),
+              ],
+            ),
+            SizedBox(height: 15),
+
+            SizedBox(height: 15),
             WButton(
-              text: "Simpan Kebun",
+              text: "Simpan",
               onPressed: () {
                 showDialog(
                   context: context,
                   barrierDismissible: false, // User wajib tekan tombol OK
                   builder: (BuildContext context) {
                     return WSuccessDialog(
-                      message: "Data kebun berhasil diubah dan disimpan",
+                      message: "Data Profile Berhasil Diupdate",
                       onOkPressed: () {
                         Navigator.of(context).pop(); // Tutup Dialog
                         Navigator.of(context).pop(); // Tutup Dialog

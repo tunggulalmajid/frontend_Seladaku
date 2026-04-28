@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class DeleteConfirmationDialog extends StatelessWidget {
+class WConfirmationDeleteDialog extends StatelessWidget {
   final String title;
   final String message;
   final VoidCallback onConfirm;
 
-  const DeleteConfirmationDialog({
+  const WConfirmationDeleteDialog({
     super.key,
     required this.title,
     required this.message,

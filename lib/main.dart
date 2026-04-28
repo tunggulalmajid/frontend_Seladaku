@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_ambilin/ui/screens/create_kebun.dart';
 import 'package:frontend_ambilin/ui/screens/create_tandon.dart';
+import 'package:frontend_ambilin/ui/screens/detail_tandon.dart';
 import 'package:frontend_ambilin/ui/screens/edit_profile_page.dart';
 import 'package:frontend_ambilin/ui/screens/main_page.dart';
 import 'package:frontend_ambilin/ui/screens/login_page.dart';
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
         AppRoutes.tambahKebun: (context) => CreateKebun(),
         AppRoutes.tandonIndex: (context) => TandonPage(),
         AppRoutes.tandonCreate: (context) => CreateTandon(),
+        AppRoutes.detailTandon: (context) => DetailTandon(),
       },
     );
   }
