@@ -107,7 +107,11 @@ class _DetailTandonState extends State<DetailTandon> {
           SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: WButton(text: "Hubungkan Perangkat IoT", onPressed: () {}),
+            child: WButton(
+              text: "Hubungkan Perangkat IoT",
+              textSize: 14,
+              onPressed: () {},
+            ),
           ),
         ],
       ),
