@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_ambilin/providers/auth_provider.dart';
 import 'package:frontend_ambilin/ui/widgets/w_header.dart';
 import 'package:frontend_ambilin/ui/widgets/w_text.dart';
 import 'package:frontend_ambilin/utils/app_colors.dart';
 import 'package:frontend_ambilin/utils/app_routes.dart';
+import 'package:provider/provider.dart';
 
 class ProfilPage extends StatelessWidget {
   const ProfilPage({super.key});
@@ -93,7 +95,17 @@ class ProfilPage extends StatelessWidget {
                 _buildMenuTile(
                   label: "Log out",
                   labelColor: Colors.red,
-                  onTap: () {},
+                  onTap: () {
+                    // 1. Panggil fungsi logout dari Provider
+                    // listen: false karena kita hanya memanggil fungsi, bukan memantau perubahan data
+                    context.read<AuthProvider>().logout();
+                    // 2. Arahkan kembali ke halaman Login dan hapus semua history navigasi
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      AppRoutes.login,
+                      (route) => false,
+                    );
+                  },
                 ),
               ],
             ),
