@@ -1,15 +1,14 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:frontend_ambilin/models/register_request.dart';
 import '../models/login_request.dart';
+import '../models/register_request.dart';
 import '../models/user_model.dart';
+import '../services/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final _storage = const FlutterSecureStorage();
-  final _dio = Dio(BaseOptions(baseUrl: "http://localhost:3000/api"));
+  final _authService = AuthService();
 
   UserModel? _user;
   bool _isLoading = false;
@@ -17,23 +16,40 @@ class AuthProvider extends ChangeNotifier {
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
 
-Future<bool> register(RegisterRequest data) async {
+  // 1. Ambil Data User Berdasarkan Token yang Tersimpan (Auto Login)
+  Future<void> fetchUser() async {
     _isLoading = true;
-    notifyListeners();
-
     try {
-      // Kirim data langsung menggunakan .toJson()
-      final response = await _dio.post('/auth/register', data: data.toJson());
+      String? token = await _storage.read(key: "accessToken");
+      if (token == null) {
+        _user = null;
+        return;
+      }
 
-      log("Response Register: ${response.data}");
-
+      final response = await _authService.getMe(token);
+      if (response.data['success'] == true) {
+        _user = UserModel.fromJson(response.data['data']);
+      } else {
+        _user = null;
+      }
+    } catch (e) {
+      log("Error Fetch User: $e");
+      _user = null;
+    } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
 
-      if (response.data['success'] == true) {
-        return true;
-      }
-      return false;
+  // 2. Registrasi
+  Future<bool> register(RegisterRequest data) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final response = await _authService.register(data);
+      _isLoading = false;
+      notifyListeners();
+      return response.data['success'] == true;
     } catch (e) {
       log("Error Register: $e");
       _isLoading = false;
@@ -41,15 +57,14 @@ Future<bool> register(RegisterRequest data) async {
       return false;
     }
   }
-  // Fungsi Login
+
+  // 3. Login
   Future<bool> login(LoginRequest data) async {
     _isLoading = true;
     notifyListeners();
     try {
-      final response = await _dio.post('/auth/login', data: data.toJson());
+      final response = await _authService.login(data);
       if (response.data['success'] == true) {
-        // Simpan Token
-        log("response : ${response.data}");
         await _storage.write(
           key: "accessToken",
           value: response.data['accessToken'],
@@ -59,26 +74,32 @@ Future<bool> register(RegisterRequest data) async {
           value: response.data['refreshToken'],
         );
 
-        // Simpan data user (ambil dari key 'user' di response login kamu)
-        // log("response : ${response.data}");
-        _user = UserModel.fromJson(response.data['data']);
+        final user = await _authService.getMe(response.data['accessToken']);
+        _user = UserModel.fromJson(user.data['data']);
+        log(_user!.nama);
         _isLoading = false;
         notifyListeners();
         return true;
-      } else {
-        _isLoading = false;
-        return false;
       }
+      _isLoading = false;
+      notifyListeners();
+      return false;
     } catch (e) {
-      log("response : $e");
+      log("Error Login: $e");
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  // Fungsi Logout
+  // 4. Logout
   void logout() async {
+    String? token = await _storage.read(key: "accessToken");
+    if (token != null) {
+      try {
+        await _authService.logout(token);
+      } catch (_) {}
+    }
     await _storage.deleteAll();
     _user = null;
     notifyListeners();
