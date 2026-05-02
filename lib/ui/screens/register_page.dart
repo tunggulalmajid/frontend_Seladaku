@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_ambilin/models/register_request.dart';
+import 'package:frontend_ambilin/dto/register_request.dart';
 import 'package:frontend_ambilin/providers/auth_provider.dart';
 
 import 'package:frontend_ambilin/ui/widgets/w_button.dart';

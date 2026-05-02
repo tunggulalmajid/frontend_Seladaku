@@ -1,9 +1,15 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:frontend_ambilin/ui/widgets/w_button.dart';
-import 'package:frontend_ambilin/ui/widgets/w_success_dialog.dart';
-import 'package:frontend_ambilin/ui/widgets/w_text.dart';
-import 'package:frontend_ambilin/ui/widgets/w_text_field.dart';
-import 'package:frontend_ambilin/utils/app_colors.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../dto/edit_profile_dto.dart';
+import '../../utils/app_colors.dart';
+import '../widgets/w_button.dart';
+import '../widgets/w_text_field.dart';
+import '../widgets/w_text.dart';
+import '../widgets/w_success_dialog.dart';
+import 'map_picker_page.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -13,116 +19,207 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
+  final _formKey = GlobalKey<FormState>(); // Kunci untuk validasi
   final TextEditingController namaController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController nomorTeleponController = TextEditingController();
   final TextEditingController alamatController = TextEditingController();
+  final TextEditingController telegramController = TextEditingController();
+
+  File? _imageFile;
+  double? lat;
+  double? lon;
+  final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    final user = context.read<AuthProvider>().user;
+    if (user != null) {
+      namaController.text = user.nama;
+      emailController.text = user.email;
+      nomorTeleponController.text = user.nomorTelepon ?? "";
+      alamatController.text = user.alamat ?? "";
+      telegramController.text = user.idTelegram ?? "";
+      lat = user.latitude;
+      lon = user.longitude;
+    }
+  }
+
+  // Fungsi ambil foto
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
+    if (image != null) setState(() => _imageFile = File(image.path));
+  }
+
+  // Fungsi ambil lokasi dari peta
+  Future<void> _handleLocationPick() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const MapPickerPage()),
+    );
+    if (result != null) {
+      setState(() {
+        lat = result['lat'];
+        lon = result['lon'];
+        alamatController.text = result['address'];
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(color: AppColor.text),
-        title: WText(
+        title: const WText(
           isi: "Edit Profile",
-          fw: .bold,
-          ukuranFont: 25,
-          color: AppColor.text,
+          fw: FontWeight.bold,
+          ukuranFont: 20,
         ),
         centerTitle: true,
-        toolbarHeight: 70,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(15.0),
+      body: Form(
+        key: _formKey, // Pasang form key di sini
         child: ListView(
+          padding: const EdgeInsets.all(20),
           children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: AppColor.primary,
-                shape: BoxShape.circle,
-              ),
-              child: CircleAvatar(
-                radius: 60,
-                child: Image.asset('assets/pp.png'),
-              ),
-            ),
-            SizedBox(height: 10),
-            Column(
-              crossAxisAlignment: .start,
-              children: [
-                WText(
-                  isi: "Nama Lengkap",
-                  align: .start,
-                  fw: .bold,
-                  ukuranFont: 15,
-                ),
-                SizedBox(height: 5),
-                WTextField(
-                  hintText: "Nama Lengkap",
-                  controller: namaController,
-                ),
-              ],
-            ),
-            SizedBox(height: 15),
-            Column(
-              crossAxisAlignment: .start,
-              children: [
-                WText(isi: "Email", align: .start, fw: .bold, ukuranFont: 15),
-                SizedBox(height: 5),
-                WTextField(hintText: "Email", controller: emailController),
-              ],
-            ),
-            SizedBox(height: 15),
-            Column(
-              crossAxisAlignment: .start,
-              children: [
-                WText(
-                  isi: "Nomor Telepon",
-                  align: .start,
-                  fw: .bold,
-                  ukuranFont: 15,
-                ),
-                SizedBox(height: 5),
-                WTextField(
-                  hintText: "Nomor Telepon",
-                  controller: nomorTeleponController,
-                ),
-              ],
-            ),
-            SizedBox(height: 15),
-            Column(
-              crossAxisAlignment: .start,
-              children: [
-                WText(isi: "Alamat", align: .start, fw: .bold, ukuranFont: 15),
-                SizedBox(height: 5),
-                WTextField(hintText: "Alamat", controller: alamatController),
-              ],
-            ),
-            SizedBox(height: 15),
+            // PROFILE PICTURE SECTION
+            _buildAvatar(authProvider),
+            const SizedBox(height: 30),
 
-            SizedBox(height: 15),
-            WButton(
-              text: "Simpan",
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  barrierDismissible: false, // User wajib tekan tombol OK
-                  builder: (BuildContext context) {
-                    return WSuccessDialog(
-                      message: "Data Profile Berhasil Diupdate",
-                      onOkPressed: () {
-                        Navigator.of(context).pop(); // Tutup Dialog
-                        Navigator.of(context).pop(); // Tutup Dialog
-                      },
-                    );
-                  },
-                );
+            // FORM FIELDS
+            _label("Nama Lengkap"),
+            WTextField(
+              hintText: "Masukkan Nama",
+              controller: namaController,
+              validator: (v) => v!.isEmpty ? "Nama wajib diisi, Wak!" : null,
+            ),
+
+            const SizedBox(height: 15),
+            _label("ID Telegram (Hanya Angka)"),
+            WTextField(
+              hintText: "Contoh: 123456789",
+              controller: telegramController,
+              keyboardType: TextInputType.number,
+              validator: (v) {
+                if (v == null || v.isEmpty)
+                  return "Wajib diisi buat notifikasi";
+                if (!RegExp(r'^[0-9]+$').hasMatch(v))
+                  return "ID Telegram harus angka";
+                return null;
               },
-              textSize: 18,
+            ),
+
+            const SizedBox(height: 15),
+            _label("Alamat & Lokasi Kebun"),
+            WTextField(
+              hintText: "Klik untuk pilih lokasi di peta",
+              controller: alamatController,
+              readOnly: true,
+              onTap: _handleLocationPick,
+              suffixIcon: const Icon(
+                Icons.location_searching,
+                color: AppColor.primary,
+              ),
+              validator: (v) => v!.isEmpty ? "Lokasi belum ditentukan" : null,
+            ),
+
+            const SizedBox(height: 15),
+            _label("Nomor WhatsApp"),
+            WTextField(
+              hintText: "0812...",
+              controller: nomorTeleponController,
+              keyboardType: TextInputType.phone,
+            ),
+
+            const SizedBox(height: 40),
+
+            // ACTION BUTTON
+            WButton(
+              text: authProvider.isLoading
+                  ? "Sedang Menyimpan..."
+                  : "Simpan Profil",
+              onPressed: authProvider.isLoading
+                  ? () {}
+                  : () async {
+                      if (_formKey.currentState!.validate()) {
+                        final dto = EditProfileDTO(
+                          nama: namaController.text,
+                          email: emailController.text,
+                          nomorTelepon: nomorTeleponController.text,
+                          alamat: alamatController.text,
+                          idTelegram: telegramController.text,
+                          lat: lat,
+                          lon: lon,
+                          fotoFile: _imageFile,
+                        );
+
+                        bool success = await authProvider.updateProfile(dto);
+                        if (success && mounted) {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (c) => WSuccessDialog(
+                              message: "Profil Seladaku Terupdate!",
+                              onOkPressed: () {
+                                Navigator.pop(c);
+                                Navigator.pop(context);
+                              },
+                            ),
+                          );
+                        }
+                      }
+                    },
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAvatar(AuthProvider authProvider) {
+    return Center(
+      child: Stack(
+        children: [
+          CircleAvatar(
+            radius: 60,
+            backgroundColor: AppColor.primary,
+            backgroundImage: _imageFile != null
+                ? FileImage(_imageFile!) as ImageProvider
+                : (authProvider.user?.foto != null
+                      ? NetworkImage(authProvider.user!.foto!)
+                      : const AssetImage('assets/pp.png') as ImageProvider),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: _pickImage,
+              child: CircleAvatar(
+                backgroundColor: AppColor.primary,
+                radius: 18,
+                child: const Icon(
+                  Icons.camera_alt,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _label(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8, left: 4),
+      child: WText(isi: text, fw: FontWeight.bold, ukuranFont: 14),
     );
   }
 }

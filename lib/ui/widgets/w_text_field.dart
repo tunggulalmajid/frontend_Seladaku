@@ -7,6 +7,10 @@ class WTextField extends StatefulWidget {
   final TextEditingController controller;
   final bool isPassword;
   final String? Function(String?)? validator;
+  final TextInputType? keyboardType;
+  final bool readOnly;
+  final VoidCallback? onTap;
+  final Widget? suffixIcon; // Opsional: Untuk icon peta atau lainnya
 
   const WTextField({
     super.key,
@@ -14,6 +18,10 @@ class WTextField extends StatefulWidget {
     required this.controller,
     this.isPassword = false,
     this.validator,
+    this.keyboardType,
+    this.readOnly = false,
+    this.onTap,
+    this.suffixIcon,
   });
 
   @override
@@ -21,13 +29,11 @@ class WTextField extends StatefulWidget {
 }
 
 class _WTextFieldState extends State<WTextField> {
-  // Variabel lokal untuk mengatur sembunyi/muncul teks
   bool _obscureText = true;
 
   @override
   void initState() {
     super.initState();
-    // Defaultnya kalau bukan field password, teks jangan disembunyikan
     _obscureText = widget.isPassword;
   }
 
@@ -35,9 +41,11 @@ class _WTextFieldState extends State<WTextField> {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: widget.controller,
-      // Jika isPassword true, maka nilai tergantung tombol mata
       obscureText: widget.isPassword ? _obscureText : false,
       validator: widget.validator,
+      keyboardType: widget.keyboardType,
+      readOnly: widget.readOnly,
+      onTap: widget.onTap,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       style: GoogleFonts.poppins(fontSize: 14),
       decoration: InputDecoration(
@@ -50,20 +58,16 @@ class _WTextFieldState extends State<WTextField> {
           vertical: 16,
         ),
 
-        // --- TAMBAHKAN TOMBOL MATA DI SINI ---
+        // Logika Suffix Icon: Tombol mata (password) diprioritaskan, baru custom icon
         suffixIcon: widget.isPassword
             ? IconButton(
                 icon: Icon(
                   _obscureText ? Icons.visibility_off : Icons.visibility,
                   color: Colors.grey,
                 ),
-                onPressed: () {
-                  setState(() {
-                    _obscureText = !_obscureText;
-                  });
-                },
+                onPressed: () => setState(() => _obscureText = !_obscureText),
               )
-            : null,
+            : widget.suffixIcon,
 
         errorStyle: GoogleFonts.poppins(color: Colors.red, fontSize: 12),
         enabledBorder: OutlineInputBorder(

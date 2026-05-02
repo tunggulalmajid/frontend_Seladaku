@@ -1,8 +1,9 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../models/login_request.dart';
-import '../models/register_request.dart';
+import 'package:frontend_ambilin/dto/edit_profile_dto.dart';
+import '../dto/login_request.dart';
+import '../dto/register_request.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 
@@ -89,6 +90,29 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false;
+    }
+  }
+
+  Future<bool> updateProfile(EditProfileDTO dto) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      String? token = await _storage.read(key: "accessToken");
+      final response = await _authService.updateProfile(dto, token!);
+
+      if (response.statusCode == 200) {
+        // Misal: update data user lokal dari response.data['data']
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      log("Error di AuthProvider: $e");
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 

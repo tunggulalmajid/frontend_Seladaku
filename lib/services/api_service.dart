@@ -7,7 +7,7 @@ class ApiService {
     dio = Dio(
       BaseOptions(
         // Sesuaikan dengan URL Backend kamu
-        baseUrl: "http://localhost:3000/api",
+        baseUrl: "http://10.0.2.2:3000/api",
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
         headers: {
