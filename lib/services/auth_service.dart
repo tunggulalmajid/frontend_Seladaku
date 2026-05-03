@@ -56,6 +56,6 @@ class AuthService extends ApiService {
 
   Future<Response> logout() async {
     // Interceptor yang akan masukin tokennya
-    return await dio.post('/auth/logout');
+    return await dio.delete('/auth/logout');
   }
 }

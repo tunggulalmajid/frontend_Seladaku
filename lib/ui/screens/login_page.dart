@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_seladaku/ui/widgets/w_button.dart';
+import 'package:frontend_seladaku/ui/widgets/w_failed_dialog.dart';
+import 'package:frontend_seladaku/ui/widgets/w_success_dialog.dart';
 import 'package:frontend_seladaku/ui/widgets/w_text.dart';
 import 'package:frontend_seladaku/ui/widgets/w_text_field.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -114,27 +116,49 @@ class _LoginPageState extends State<LoginPage> {
                               email: _emailController.text,
                               password: _passwordController.text,
                             );
-                            bool success = await auth.login(request);
-                            _emailController.clear();
-                            _passwordController.clear();
-                            // Pastikan widget masih ada sebelum pindah halaman
-                            if (!context.mounted) return;
-                            if (success) {
-                              Navigator.pushNamedAndRemoveUntil(
-                                context,
-                                AppRoutes.main,
-                                (route) => false,
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Center(
-                                    child: WText(
-                                      isi: "Login Gagal",
-                                      color: AppColor.background,
-                                    ),
+                            try {
+                              bool success = await auth.login(request);
+                              _emailController.clear();
+                              _passwordController.clear();
+
+                              if (!context.mounted) return;
+                              if (success) {
+                                await showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (c) => WSuccessDialog(
+                                    message: "Login Berhasil",
+                                    onOkPressed: () {
+                                      Navigator.pop(c);
+                                    },
                                   ),
-                                  backgroundColor: AppColor.redStatus,
+                                );
+                                if (context.mounted) {
+                                  Navigator.pushNamedAndRemoveUntil(
+                                    context,
+                                    AppRoutes.main,
+                                    (route) => false,
+                                  );
+                                }
+                              } else {
+                                showDialog(
+                                  context: context,
+                                  builder: (c) => WFailedDialog(
+                                    message: "Username atau Password Salah",
+                                    onOkPressed: () {
+                                      Navigator.pop(c);
+                                    },
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              showDialog(
+                                context: context,
+                                builder: (c) => WFailedDialog(
+                                  message: "error : $e",
+                                  onOkPressed: () {
+                                    Navigator.pop(c);
+                                  },
                                 ),
                               );
                             }

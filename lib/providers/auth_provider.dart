@@ -131,6 +131,7 @@ class AuthProvider extends ChangeNotifier {
           key: "accessToken",
           value: response.data['accessToken'],
         );
+        log("newAccessToken : ${response.data['accessToken']}");
         return true;
       }
     } catch (e) {
@@ -143,7 +144,9 @@ class AuthProvider extends ChangeNotifier {
   Future<void> logout() async {
     try {
       await _authService.logout();
-    } catch (_) {}
+    } catch (e) {
+      log("error : $e");
+    }
     await logoutLocally();
   }
 

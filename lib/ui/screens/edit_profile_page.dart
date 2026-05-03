@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:frontend_seladaku/ui/widgets/w_failed_dialog.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -37,6 +38,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void initState() {
     super.initState();
     final user = context.read<AuthProvider>().user;
+    String inisial = user?.nama != null && user!.nama.isNotEmpty
+        ? user.nama[0].toUpperCase()
+        : "?";
     if (user != null) {
       namaController.text = user.nama;
       emailController.text = user.email;
@@ -130,12 +134,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
               controller: telegramController,
               keyboardType: TextInputType.number,
               validator: (v) {
-                if (v == null || v.isEmpty) {
-                  return "Wajib diisi buat notifikasi";
+                if (v == null || v.trim().isEmpty) {
+                  return null;
                 }
+
                 if (!RegExp(r'^[0-9]+$').hasMatch(v)) {
                   return "ID Telegram harus angka";
                 }
+
                 return null;
               },
             ),
@@ -151,7 +157,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 Icons.location_searching_outlined,
                 color: AppColor.primary,
               ),
-              validator: (v) => v!.isEmpty ? "Lokasi belum ditentukan" : null,
             ),
 
             const SizedBox(height: 15),
@@ -183,22 +188,36 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           lon: lon,
                           fotoFile: _imageFile,
                         );
-                        log("lat : $lat, long : $lon");
-
-                        bool success = await authProvider.updateProfile(dto);
-                        authProvider.fetchUser();
-                        if (success && context.mounted) {
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (c) => WSuccessDialog(
-                              message: "Profil Seladaku Terupdate!",
-                              onOkPressed: () {
-                                Navigator.pop(c);
-                                Navigator.pop(context);
-                              },
-                            ),
-                          );
+                        try {
+                          bool success = await authProvider.updateProfile(dto);
+                          authProvider.fetchUser();
+                          if (success && context.mounted) {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (c) => WSuccessDialog(
+                                message: "Profil Seladaku Terupdate!",
+                                onOkPressed: () {
+                                  Navigator.pop(c);
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (c) => WFailedDialog(
+                                message: "Error : $e",
+                                onOkPressed: () {
+                                  Navigator.pop(c);
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            );
+                          }
                         }
                       }
                     },
@@ -210,17 +229,24 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Widget _buildAvatar(AuthProvider authProvider) {
+    final user = authProvider.user;
+    final inisial = user?.nama.isNotEmpty == true
+        ? user!.nama[0].toUpperCase()
+        : "?";
+
     return Center(
       child: Stack(
         children: [
           CircleAvatar(
             radius: 60,
-            backgroundColor: AppColor.primary,
+            backgroundColor: Colors.green[50],
+            // Urutan Prioritas: 1. File baru, 2. Foto dari Server, 3. Kosong (null)
             backgroundImage: _imageFile != null
-                ? FileImage(_imageFile!) as ImageProvider
-                : (authProvider.user?.foto != null
-                      ? NetworkImage(authProvider.user!.foto!)
-                      : const AssetImage('assets/pp.png') as ImageProvider),
+                ? FileImage(_imageFile!)
+                : (user?.foto != null ? NetworkImage("${user!.foto}") : null),
+            child: (_imageFile == null && user?.foto == null)
+                ? _buildInitial(inisial)
+                : null,
           ),
           Positioned(
             bottom: 0,
@@ -240,6 +266,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildInitial(String char) {
+    return WText(
+      isi: char,
+      ukuranFont: 60,
+      fw: FontWeight.bold,
+      color: AppColor.primary, // Huruf berwarna hijau tua (Primary)
     );
   }
 

@@ -3,7 +3,9 @@ import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:frontend_seladaku/providers/area_provider.dart';
 import 'package:frontend_seladaku/providers/auth_provider.dart';
+import 'package:frontend_seladaku/services/area_service.dart';
 import 'package:frontend_seladaku/services/auth_service.dart';
 import 'package:frontend_seladaku/services/dio_interceptor.dart';
 import 'package:frontend_seladaku/ui/screens/create_kebun.dart';
@@ -22,27 +24,33 @@ import 'package:provider/provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. Buat Provider & Service secara terpisah
+  // 1. Inisialisasi semua objek
   final authProvider = AuthProvider();
   final authService = AuthService();
+  final areaProvider = AreaProvider();
+  final areaService = AreaService();
 
-  // 2. PASANG INTERCEPTOR KE SERVICE
-  // Ini kunci utamanya. Kita pasang ke dio milik authService.
+  // 2. Pasang Interceptor ke masing-masing Dio instance
+  // AreaService juga wajib dipasangi agar bisa mengakses endpoint privat /area
   authService.addInterceptor(
     DioInterceptor(authProvider: authProvider, dio: authService.dio),
   );
+  areaService.addInterceptor(
+    DioInterceptor(authProvider: authProvider, dio: areaService.dio),
+  );
 
-  // 3. SUNTIKKAN SERVICE YANG SUDAH BER-INTERCEPTOR KE PROVIDER
+  // 3. Hubungkan Service ke Provider masing-masing
   authProvider.updateService(authService);
+  areaProvider.updateService(areaService);
 
-  // 4. Baru jalankan fetchUser
+  // 4. Cek login user
   await authProvider.fetchUser();
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: authProvider),
-        Provider.value(value: authService),
+        ChangeNotifierProvider.value(value: areaProvider), // Daftar di sini
       ],
       child: const MyApp(),
     ),

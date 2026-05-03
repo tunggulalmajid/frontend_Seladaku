@@ -3,6 +3,7 @@ import 'package:frontend_seladaku/dto/register_request.dart';
 import 'package:frontend_seladaku/providers/auth_provider.dart';
 
 import 'package:frontend_seladaku/ui/widgets/w_button.dart';
+import 'package:frontend_seladaku/ui/widgets/w_success_dialog.dart';
 import 'package:frontend_seladaku/ui/widgets/w_text_field.dart';
 import 'package:frontend_seladaku/utils/app_colors.dart';
 import 'package:frontend_seladaku/utils/app_routes.dart';
@@ -141,15 +142,24 @@ class _RegisterPageState extends State<RegisterPage> {
                               _passwordController.clear();
                               _konfirmasiController.clear();
                               if (success) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      "Registrasi Berhasil! Silakan Login",
-                                    ),
-                                    backgroundColor: Colors.green,
+                                await showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (c) => WSuccessDialog(
+                                    message:
+                                        "Registrasi Berhasil, Silahkan Login",
+                                    onOkPressed: () {
+                                      Navigator.pop(c);
+                                    },
                                   ),
                                 );
-                                Navigator.pop(context);
+                                if (context.mounted) {
+                                  Navigator.pushNamedAndRemoveUntil(
+                                    context,
+                                    AppRoutes.login,
+                                    (route) => false,
+                                  );
+                                }
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
