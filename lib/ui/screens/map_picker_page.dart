@@ -1,128 +1,189 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geocoding/geocoding.dart';
-import '../../utils/app_colors.dart';
-import '../widgets/w_button.dart';
-import '../widgets/w_text.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart'; // Import untuk translator alamat
 
 class MapPickerPage extends StatefulWidget {
-  const MapPickerPage({super.key});
+  final LatLng? initialLocation;
 
+  const MapPickerPage({super.key, this.initialLocation});
   @override
-  State<MapPickerPage> createState() => _MapPickerPageState();
+  _MapPickerPageState createState() => _MapPickerPageState();
 }
 
 class _MapPickerPageState extends State<MapPickerPage> {
-  static const LatLng _initialPosition = LatLng(-8.1652, 113.7170);
+  // Koordinat default (Jember/UNEJ)
+  late LatLng _currentLocation;
+  String _address = "Ketuk peta atau klik tombol GPS";
+  bool _isLoadingAddress = false;
+  final MapController _mapController = MapController();
+  
+  @override
+  void initState() {
+    super.initState();
+    // Jika ada lokasi awal dari DB, pakai itu. Jika null, pakai default (Jember)
+    _currentLocation = widget.initialLocation ?? LatLng(-8.1706, 113.7022);
 
-  LatLng _pickedLocation = _initialPosition;
-  String _currentAddress = "Geser pin ke lokasi kebunmu, Wak!";
-  bool _isGettingAddress = false;
+    // Langsung ambil alamatnya agar teks di kotak atas tidak kosong
+    _getAddressFromLatLng(_currentLocation);
+  }
 
-  // Fungsi untuk mendapatkan alamat teks dari koordinat
-  Future<void> _getAddress(LatLng position) async {
-    setState(() => _isGettingAddress = true);
+  Future<void> _getAddressFromLatLng(LatLng position) async {
+    setState(() => _isLoadingAddress = true);
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
         position.latitude,
         position.longitude,
       );
-      if (placemarks.isNotEmpty) {
-        Placemark place = placemarks[0];
-        setState(() {
-          _currentAddress =
-              "${place.street}, ${place.subLocality}, ${place.locality}";
-        });
-      }
+
+      Placemark place = placemarks[0];
+      setState(() {
+        // Menyusun format alamat: Nama Jalan, Kec, Kota, Kode Pos
+        _address =
+            "${place.street}, ${place.subLocality}, ${place.locality}, ${place.subAdministrativeArea} ${place.postalCode}";
+        _isLoadingAddress = false;
+      });
     } catch (e) {
-      setState(() => _currentAddress = "Alamat tidak ditemukan");
-    } finally {
-      setState(() => _isGettingAddress = false);
+      log("Gagal ambil alamat: $e");
+      setState(() {
+        _address = "Alamat tidak ditemukan";
+        _isLoadingAddress = false;
+      });
     }
+  }
+
+  // 2. FUNGSI GPS: Ambil lokasi otomatis dari HP
+  Future<void> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('GPS mati, Wak. Nyalakan dulu!')),
+      );
+      return;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return;
+    }
+
+    Position position = await Geolocator.getCurrentPosition();
+    LatLng newPos = LatLng(position.latitude, position.longitude);
+
+    setState(() {
+      _currentLocation = newPos;
+      _mapController.move(_currentLocation, 15.0);
+    });
+
+    _getAddressFromLatLng(newPos); // Translate alamat otomatis
+    log("GPS Berhasil: ${position.latitude}, ${position.longitude}");
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const WText(
-          isi: "Pilih Lokasi Kebun",
-          fw: FontWeight.bold,
-          ukuranFont: 18,
-        ),
-        centerTitle: true,
+        title: const Text("Pilih Lokasi"),
+        actions: [
+          // Tombol Konfirmasi Final
+          IconButton(
+            icon: const Icon(Icons.check_circle, color: Colors.green, size: 30),
+            onPressed: () {
+              // Kirim balik data koordinat dan alamat ke halaman form
+              Navigator.pop(context, {
+                'lat': _currentLocation.latitude,
+                'lon': _currentLocation.longitude,
+                'address': _address,
+              });
+            },
+          ),
+        ],
       ),
       body: Stack(
         children: [
-          // MAPS VIEW
-          GoogleMap(
-            initialCameraPosition: const CameraPosition(
-              target: _initialPosition,
-              zoom: 15,
+          // LAYER 1: Peta OpenStreetMap
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: _currentLocation,
+              initialZoom: 15.0,
+              onTap: (tapPosition, point) {
+                setState(() => _currentLocation = point);
+                _getAddressFromLatLng(point); // Translate saat klik manual
+              },
             ),
-            onMapCreated: (controller) => _getAddress(_initialPosition),
-            onCameraMove: (position) {
-              _pickedLocation = position.target;
-            },
-            onCameraIdle: () {
-              _getAddress(_pickedLocation); // Update alamat pas berhenti geser
-            },
-            // Pin tetap di tengah layar
-            markers: {
-              Marker(
-                markerId: const MarkerId("picked_location"),
-                position: _pickedLocation,
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                additionalOptions: const {
+                  'User-Agent': 'FrontendAmbilin_ByTunggul_1.0',
+                },
+                userAgentPackageName: 'com.example.frontend_ambilin',
               ),
-            },
-          ),
-
-          // OVERLAY INFORMASI ALAMAT
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on, color: AppColor.primary),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          _isGettingAddress
-                              ? "Mencari alamat..."
-                              : _currentAddress,
-                          style: const TextStyle(fontSize: 14),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  WButton(
-                    text: "Gunakan Lokasi Ini",
-                    onPressed: _isGettingAddress
-                        ? () {}
-                        : () {
-                            // Balikin data ke halaman Edit Profile
-                            Navigator.pop(context, {
-                              'lat': _pickedLocation.latitude,
-                              'lon': _pickedLocation.longitude,
-                              'address': _currentAddress,
-                            });
-                          },
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: _currentLocation,
+                    width: 80,
+                    height: 80,
+                    child: const Icon(
+                      Icons.location_on,
+                      color: Colors.red,
+                      size: 45,
+                    ),
                   ),
                 ],
               ),
+            ],
+          ),
+
+          // LAYER 2: Kotak Alamat (Floating)
+          Positioned(
+            top: 20,
+            left: 15,
+            right: 15,
+            child: Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black26, blurRadius: 8),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.map, color: Colors.blue),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _isLoadingAddress ? "Mencari alamat..." : _address,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // LAYER 3: Tombol My Location
+          Positioned(
+            bottom: 30,
+            right: 20,
+            child: FloatingActionButton(
+              heroTag: "gps_btn",
+              backgroundColor: Colors.white,
+              onPressed: _determinePosition,
+              child: const Icon(Icons.my_location, color: Colors.blueAccent),
             ),
           ),
         ],

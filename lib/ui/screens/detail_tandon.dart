@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_ambilin/ui/widgets/w_button.dart';
-import 'package:frontend_ambilin/ui/widgets/w_confirmation_delete_dialog.dart';
-import 'package:frontend_ambilin/ui/widgets/w_data_tandon.dart';
-// import 'package:frontend_ambilin/ui/widgets/w_header.dart';
-// import 'package:frontend_ambilin/ui/widgets/w_home_header.dart';
-// import 'package:frontend_ambilin/ui/widgets/w_kebun_card.dart';
-import 'package:frontend_ambilin/ui/widgets/w_null_kebuntandon.dart';
-import 'package:frontend_ambilin/ui/widgets/w_setting_tile.dart';
-import 'package:frontend_ambilin/ui/widgets/w_tandon_card.dart';
-import 'package:frontend_ambilin/ui/widgets/w_text.dart';
-import 'package:frontend_ambilin/utils/app_colors.dart';
-import 'package:frontend_ambilin/utils/app_routes.dart';
+import 'package:frontend_seladaku/ui/widgets/w_button.dart';
+import 'package:frontend_seladaku/ui/widgets/w_confirmation_delete_dialog.dart';
+import 'package:frontend_seladaku/ui/widgets/w_data_tandon.dart';
+// import 'package:frontend_seladaku/ui/widgets/w_header.dart';
+// import 'package:frontend_seladaku/ui/widgets/w_home_header.dart';
+// import 'package:frontend_seladaku/ui/widgets/w_kebun_card.dart';
+import 'package:frontend_seladaku/ui/widgets/w_null_kebuntandon.dart';
+import 'package:frontend_seladaku/ui/widgets/w_setting_tile.dart';
+import 'package:frontend_seladaku/ui/widgets/w_tandon_card.dart';
+import 'package:frontend_seladaku/ui/widgets/w_text.dart';
+import 'package:frontend_seladaku/utils/app_colors.dart';
+import 'package:frontend_seladaku/utils/app_routes.dart';
 // import 'package:frontend_ambilin/ui/widgets/w_null_kebuntandon.dart';
 
 class DetailTandon extends StatefulWidget {

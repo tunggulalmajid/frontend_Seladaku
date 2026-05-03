@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_ambilin/utils/app_colors.dart';
+import 'package:frontend_seladaku/utils/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class WText extends StatelessWidget {

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 
 class ApiService {
@@ -7,7 +9,8 @@ class ApiService {
     dio = Dio(
       BaseOptions(
         // Sesuaikan dengan URL Backend kamu
-        baseUrl: "http://10.0.2.2:3000/api",
+        baseUrl: "http://192.168.1.18:3000/api",
+        // baseUrl: "http://localhost:3000/api",
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
         headers: {
@@ -16,5 +19,11 @@ class ApiService {
         },
       ),
     );
+  }
+
+  void addInterceptor(Interceptor interceptor) {
+    // Pastikan ini barisnya benar
+    dio.interceptors.add(interceptor);
+    log("ApiService: Interceptor berhasil ditambahkan ke Dio!");
   }
 }

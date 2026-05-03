@@ -1,6 +1,8 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../dto/edit_profile_dto.dart';
@@ -44,6 +46,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       lat = user.latitude;
       lon = user.longitude;
     }
+    log("$lat, $lon");
   }
 
   // Fungsi ambil foto
@@ -59,7 +62,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Future<void> _handleLocationPick() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const MapPickerPage()),
+      MaterialPageRoute(
+        builder: (context) => MapPickerPage(
+          // Kirim lokasi yang saat ini tersimpan di state EditProfile
+          initialLocation: (lat != null && lon != null)
+              ? LatLng(lat!, lon!)
+              : null,
+        ),
+      ),
     );
     if (result != null) {
       setState(() {
@@ -76,11 +86,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const WText(
-          isi: "Edit Profile",
-          fw: FontWeight.bold,
-          ukuranFont: 20,
-        ),
+        title: WText(isi: "Edit Profile", fw: FontWeight.bold, ukuranFont: 20),
         centerTitle: true,
       ),
       body: Form(
@@ -101,16 +107,35 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
 
             const SizedBox(height: 15),
+            _label("email"),
+            WTextField(
+              hintText: "contoh : t@gmail.com",
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              validator: (v) {
+                if (v == null || v.isEmpty) {
+                  return "Wajib diisi buat notifikasi";
+                }
+                if (!v.contains("@")) {
+                  return "Gunakan format email yang benar";
+                }
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 15),
             _label("ID Telegram (Hanya Angka)"),
             WTextField(
               hintText: "Contoh: 123456789",
               controller: telegramController,
               keyboardType: TextInputType.number,
               validator: (v) {
-                if (v == null || v.isEmpty)
+                if (v == null || v.isEmpty) {
                   return "Wajib diisi buat notifikasi";
-                if (!RegExp(r'^[0-9]+$').hasMatch(v))
+                }
+                if (!RegExp(r'^[0-9]+$').hasMatch(v)) {
                   return "ID Telegram harus angka";
+                }
                 return null;
               },
             ),
@@ -123,14 +148,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
               readOnly: true,
               onTap: _handleLocationPick,
               suffixIcon: const Icon(
-                Icons.location_searching,
+                Icons.location_searching_outlined,
                 color: AppColor.primary,
               ),
               validator: (v) => v!.isEmpty ? "Lokasi belum ditentukan" : null,
             ),
 
             const SizedBox(height: 15),
-            _label("Nomor WhatsApp"),
+            _label("Nomor Telepon"),
             WTextField(
               hintText: "0812...",
               controller: nomorTeleponController,
@@ -158,9 +183,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           lon: lon,
                           fotoFile: _imageFile,
                         );
+                        log("lat : $lat, long : $lon");
 
                         bool success = await authProvider.updateProfile(dto);
-                        if (success && mounted) {
+                        authProvider.fetchUser();
+                        if (success && context.mounted) {
                           showDialog(
                             context: context,
                             barrierDismissible: false,
@@ -219,7 +246,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget _label(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8, left: 4),
-      child: WText(isi: text, fw: FontWeight.bold, ukuranFont: 14),
+      child: WText(
+        align: .start,
+        isi: text,
+        fw: FontWeight.bold,
+        ukuranFont: 14,
+      ),
     );
   }
 }

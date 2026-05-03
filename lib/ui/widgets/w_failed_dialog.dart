@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_ambilin/utils/app_colors.dart';
+import 'package:frontend_seladaku/utils/app_colors.dart';
 
 class WFailedDialog extends StatelessWidget {
   final String message;

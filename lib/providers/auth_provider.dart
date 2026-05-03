@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:frontend_ambilin/dto/edit_profile_dto.dart';
+import 'package:frontend_seladaku/dto/edit_profile_dto.dart';
 import '../dto/login_request.dart';
 import '../dto/register_request.dart';
 import '../models/user_model.dart';
@@ -9,7 +9,9 @@ import '../services/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final _storage = const FlutterSecureStorage();
-  final _authService = AuthService();
+
+  // Gunakan late agar bisa disuntikkan dari main.dart
+  late AuthService _authService;
 
   UserModel? _user;
   bool _isLoading = false;
@@ -17,21 +19,23 @@ class AuthProvider extends ChangeNotifier {
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
 
-  // 1. Ambil Data User Berdasarkan Token yang Tersimpan (Auto Login)
+  // 1. Fungsi Injeksi Service (Penting!)
+  void updateService(AuthService service) {
+    _authService = service;
+    log("AuthProvider: Service telah diperbarui dengan Interceptor!");
+  }
+
   Future<void> fetchUser() async {
     _isLoading = true;
     try {
-      String? token = await _storage.read(key: "accessToken");
-      if (token == null) {
-        _user = null;
-        return;
-      }
+      String? accessToken = await _storage.read(key: "accessToken");
 
-      final response = await _authService.getMe(token);
+      if (accessToken == null) return;
+
+      final response = await _authService.getMe();
+
       if (response.data['success'] == true) {
         _user = UserModel.fromJson(response.data['data']);
-      } else {
-        _user = null;
       }
     } catch (e) {
       log("Error Fetch User: $e");
@@ -42,30 +46,30 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 2. Registrasi
+  // 3. Register (Ini yang tadi ketinggalan, Wak!)
   Future<bool> register(RegisterRequest data) async {
     _isLoading = true;
     notifyListeners();
     try {
       final response = await _authService.register(data);
-      _isLoading = false;
-      notifyListeners();
       return response.data['success'] == true;
     } catch (e) {
       log("Error Register: $e");
+      return false;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      return false;
     }
   }
 
-  // 3. Login
+  // 4. Login
   Future<bool> login(LoginRequest data) async {
     _isLoading = true;
     notifyListeners();
     try {
       final response = await _authService.login(data);
       if (response.data['success'] == true) {
+        // Simpan duo token
         await _storage.write(
           key: "accessToken",
           value: response.data['accessToken'],
@@ -75,40 +79,15 @@ class AuthProvider extends ChangeNotifier {
           value: response.data['refreshToken'],
         );
 
-        final user = await _authService.getMe(response.data['accessToken']);
-        _user = UserModel.fromJson(user.data['data']);
-        log(_user!.nama);
-        _isLoading = false;
-        notifyListeners();
+        // Ambil data profil (otomatis pakai token baru via interceptor)
+        final profile = await _authService.getMe();
+        _user = UserModel.fromJson(profile.data['data']);
+
         return true;
       }
-      _isLoading = false;
-      notifyListeners();
       return false;
     } catch (e) {
       log("Error Login: $e");
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<bool> updateProfile(EditProfileDTO dto) async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      String? token = await _storage.read(key: "accessToken");
-      final response = await _authService.updateProfile(dto, token!);
-
-      if (response.statusCode == 200) {
-        // Misal: update data user lokal dari response.data['data']
-        notifyListeners();
-        return true;
-      }
-      return false;
-    } catch (e) {
-      log("Error di AuthProvider: $e");
       return false;
     } finally {
       _isLoading = false;
@@ -116,14 +95,59 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 4. Logout
-  void logout() async {
-    String? token = await _storage.read(key: "accessToken");
-    if (token != null) {
-      try {
-        await _authService.logout(token);
-      } catch (_) {}
+  // 5. Update Profile
+  Future<bool> updateProfile(EditProfileDTO dto) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final response = await _authService.updateProfile(dto);
+      if (response.statusCode == 200) {
+        await fetchUser(); // Sync data terbaru
+        return true;
+      }
+      return false;
+    } catch (e) {
+      log("Error Update Profile: $e");
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
+  }
+
+  // 6. Handle Refresh Token (Dipanggil oleh Interceptor)
+  Future<bool> handleRefreshToken() async {
+    try {
+      String? refreshToken = await _storage.read(key: "refreshToken");
+      log("Token : $refreshToken ");
+      if (refreshToken == null) return false;
+
+      // Pastikan endpoint '/auth/refresh' sesuai dengan route di backend-mu
+      final response = await _authService.refresh(refreshToken);
+
+      if (response.data['success'] == true) {
+        // Simpan Access Token baru
+        await _storage.write(
+          key: "accessToken",
+          value: response.data['accessToken'],
+        );
+        return true;
+      }
+    } catch (e) {
+      log("Error saat Refresh Token: $e");
+    }
+    return false;
+  }
+
+  // 7. Logout
+  Future<void> logout() async {
+    try {
+      await _authService.logout();
+    } catch (_) {}
+    await logoutLocally();
+  }
+
+  Future<void> logoutLocally() async {
     await _storage.deleteAll();
     _user = null;
     notifyListeners();

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_ambilin/dto/register_request.dart';
-import 'package:frontend_ambilin/providers/auth_provider.dart';
+import 'package:frontend_seladaku/dto/register_request.dart';
+import 'package:frontend_seladaku/providers/auth_provider.dart';
 
-import 'package:frontend_ambilin/ui/widgets/w_button.dart';
-import 'package:frontend_ambilin/ui/widgets/w_text_field.dart';
-import 'package:frontend_ambilin/utils/app_colors.dart';
-import 'package:frontend_ambilin/utils/app_routes.dart';
+import 'package:frontend_seladaku/ui/widgets/w_button.dart';
+import 'package:frontend_seladaku/ui/widgets/w_text_field.dart';
+import 'package:frontend_seladaku/utils/app_colors.dart';
+import 'package:frontend_seladaku/utils/app_routes.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -28,11 +28,11 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       backgroundColor: AppColor.background,
       body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-            child: Form(
-              key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
               child: Column(
                 children: [
                   Column(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_ambilin/ui/widgets/w_header.dart';
-import 'package:frontend_ambilin/ui/widgets/w_text.dart';
+import 'package:frontend_seladaku/ui/widgets/w_header.dart';
+import 'package:frontend_seladaku/ui/widgets/w_text.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
@@ -91,6 +91,8 @@ class ProfilPage extends StatelessWidget {
                 const SizedBox(height: 8),
                 _buildInfoRow("No. Telepon", user?.nomorTelepon ?? "-"),
                 const SizedBox(height: 8),
+                _buildInfoRow("ID telegram", user?.idTelegram ?? "-"),
+                const SizedBox(height: 8),
                 _buildInfoRow("Alamat", user?.alamat ?? "-"),
               ],
             ),
@@ -168,14 +170,14 @@ class ProfilPage extends StatelessWidget {
           ),
 
           // Titik dua
-          const WText(isi: ": ", fw: FontWeight.w600, ukuranFont: 14),
+          WText(isi: ": ", fw: FontWeight.w600, ukuranFont: 14),
 
           // Value (Isi datanya)
           Expanded(
             // PENTING: Agar teks panjang tidak menyebabkan error overflow
             child: Text(
               value,
-              textAlign: TextAlign.justify, // Rata kanan agar rapi
+              textAlign: TextAlign.start,
               overflow: TextOverflow.visible,
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w600,

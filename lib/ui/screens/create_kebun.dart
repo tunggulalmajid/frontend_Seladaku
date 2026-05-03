@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_ambilin/ui/widgets/w_button.dart';
-import 'package:frontend_ambilin/ui/widgets/w_failed_dialog.dart';
-import 'package:frontend_ambilin/ui/widgets/w_text.dart';
-import 'package:frontend_ambilin/ui/widgets/w_text_field.dart';
-import 'package:frontend_ambilin/utils/app_colors.dart';
+import 'package:frontend_seladaku/ui/widgets/w_button.dart';
+import 'package:frontend_seladaku/ui/widgets/w_failed_dialog.dart';
+import 'package:frontend_seladaku/ui/widgets/w_text.dart';
+import 'package:frontend_seladaku/ui/widgets/w_text_field.dart';
+import 'package:frontend_seladaku/utils/app_colors.dart';
 
 class CreateKebun extends StatefulWidget {
   const CreateKebun({super.key});

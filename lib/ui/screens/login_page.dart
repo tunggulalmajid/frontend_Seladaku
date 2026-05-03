@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_ambilin/ui/widgets/w_button.dart';
-import 'package:frontend_ambilin/ui/widgets/w_text.dart';
-import 'package:frontend_ambilin/ui/widgets/w_text_field.dart';
+import 'package:frontend_seladaku/ui/widgets/w_button.dart';
+import 'package:frontend_seladaku/ui/widgets/w_text.dart';
+import 'package:frontend_seladaku/ui/widgets/w_text_field.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';

@@ -1,8 +1,9 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:frontend_ambilin/utils/app_colors.dart';
-import 'package:frontend_ambilin/utils/app_routes.dart';
+import 'package:provider/provider.dart'; // Tambahkan ini
+import 'package:frontend_seladaku/providers/auth_provider.dart'; // Tambahkan ini
+import 'package:frontend_seladaku/utils/app_colors.dart';
+import 'package:frontend_seladaku/utils/app_routes.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,9 +16,26 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    _startNavigation();
+  }
 
+  // Buat fungsi navigasi yang lebih cerdas
+  void _startNavigation() {
     Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, AppRoutes.login);
+      // Pastikan widget masih ada di tree (tidak di-close saat timer berjalan)
+      if (!mounted) return;
+
+      // Ambil data auth dari provider
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+
+      // CEK LOGIKA DI SINI:
+      // Jika user ada (karena fetchUser di main.dart berhasil), ke Main.
+      // Jika tidak ada, baru ke Login.
+      if (auth.user != null) {
+        Navigator.pushReplacementNamed(context, AppRoutes.main);
+      } else {
+        Navigator.pushReplacementNamed(context, AppRoutes.login);
+      }
     });
   }
 
@@ -27,7 +45,15 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: AppColor.primary,
       body: Stack(
         children: [
-          Center(child: Image.asset("assets/logo_seladaku.png", width: 300)),
+          Center(
+            child: Image.asset(
+              "assets/logo_seladaku.png",
+              width: 300,
+              // Tambahkan errorBuilder agar tidak merah kalau file aset belum ada
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.eco, size: 100, color: Colors.white),
+            ),
+          ),
           const Positioned(
             bottom: 100,
             left: 0,

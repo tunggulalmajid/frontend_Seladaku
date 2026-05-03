@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_ambilin/ui/widgets/w_status_component.dart';
-import 'package:frontend_ambilin/ui/widgets/w_text.dart';
+import 'package:frontend_seladaku/ui/widgets/w_status_component.dart';
+import 'package:frontend_seladaku/ui/widgets/w_text.dart';
 // import 'package:google_fonts/google_fonts.dart';
-import 'package:frontend_ambilin/utils/app_colors.dart';
+import 'package:frontend_seladaku/utils/app_colors.dart';
 
 class WKebunCard extends StatelessWidget {
   final String namaKebun;
