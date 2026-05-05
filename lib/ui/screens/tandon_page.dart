@@ -51,7 +51,6 @@ class _TandonPageState extends State<TandonPage> {
             "Apakah Anda yakin ingin menghapus '${area.nama}'? Data tandon di dalamnya akan ikut terhapus.",
         onConfirm: () async {
           navigator.pop();
-
           bool sukses = await areaProv.removeArea(area.idArea);
           if (sukses && mounted) {
             await showDialog(
