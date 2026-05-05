@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:frontend_seladaku/providers/area_provider.dart';
 import 'package:frontend_seladaku/providers/auth_provider.dart';
+import 'package:frontend_seladaku/providers/tandon_provider.dart';
 import 'package:frontend_seladaku/services/area_service.dart';
 import 'package:frontend_seladaku/services/auth_service.dart';
 import 'package:frontend_seladaku/services/dio_interceptor.dart';
+import 'package:frontend_seladaku/services/tandon_service.dart';
 import 'package:frontend_seladaku/ui/screens/create_kebun.dart';
 import 'package:frontend_seladaku/ui/screens/create_tandon.dart';
 import 'package:frontend_seladaku/ui/screens/detail_tandon.dart';
@@ -29,6 +31,8 @@ void main() async {
   final authService = AuthService();
   final areaProvider = AreaProvider();
   final areaService = AreaService();
+  final tandonProvider = TandonProvider();
+  final tandonService = TandonService();
 
   // 2. Pasang Interceptor ke masing-masing Dio instance
   // AreaService juga wajib dipasangi agar bisa mengakses endpoint privat /area
@@ -38,10 +42,14 @@ void main() async {
   areaService.addInterceptor(
     DioInterceptor(authProvider: authProvider, dio: areaService.dio),
   );
+  tandonService.addInterceptor(
+    DioInterceptor(authProvider: authProvider, dio: tandonService.dio),
+  );
 
   // 3. Hubungkan Service ke Provider masing-masing
   authProvider.updateService(authService);
   areaProvider.updateService(areaService);
+  tandonProvider.updateService(tandonService);
 
   // 4. Cek login user
   await authProvider.fetchUser();
@@ -51,6 +59,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider.value(value: areaProvider), // Daftar di sini
+        ChangeNotifierProvider.value(value: tandonProvider),
       ],
       child: const MyApp(),
     ),

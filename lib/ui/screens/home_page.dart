@@ -38,21 +38,12 @@ class _HomePageState extends State<HomePage> {
                 children: [WText(isi: "Kebun Saya", fw: .bold, ukuranFont: 30)],
               ),
             ),
-            adaKebun
-                ? WTandonCard(
-                    ppm: 800,
-                    volume: "200",
-                    ph: 7.1,
-                    namaTandon: "Tandon 1",
-                    mode: "Mode Hujan",
-                    namaKebun: "Kebun 1",
-                  )
-                : WNullKebuntandon(
-                    keterangan: "Belum Ada Kebun",
-                    deskripsi:
-                        "Mulai pantau kebun Anda dengan menambahkan area pertama ",
-                    icon: Icons.add,
-                  ),
+            WNullKebuntandon(
+              keterangan: "Belum Ada Kebun",
+              deskripsi:
+                  "Mulai pantau kebun Anda dengan menambahkan area pertama ",
+              icon: Icons.add,
+            ),
           ],
         ),
       ),

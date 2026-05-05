@@ -27,7 +27,6 @@ class _KebunPageState extends State<KebunPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Menggunakan RefreshIndicator agar user bisa tarik ke bawah untuk refresh data
       body: RefreshIndicator(
         onRefresh: () =>
             Provider.of<AreaProvider>(context, listen: false).fetchAreas(),
@@ -79,9 +78,7 @@ class _KebunPageState extends State<KebunPage> {
                       },
                       child: WKebunCard(
                         namaKebun: area.nama,
-                        // Pastikan widget WKebunCard kamu bisa menerima parameter tambahan seperti:
-                        // totalTandon: area.totalTandon,
-                        // status: area.status,
+                        jumlahTandon: area.totalTandon,
                       ),
                     );
                   }).toList(),
@@ -97,7 +94,7 @@ class _KebunPageState extends State<KebunPage> {
         },
         style: ButtonStyle(
           padding: const WidgetStatePropertyAll(
-            EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+            EdgeInsets.symmetric(horizontal: 17, vertical: 17),
           ),
           backgroundColor: const WidgetStatePropertyAll(AppColor.primary),
           shape: WidgetStatePropertyAll(

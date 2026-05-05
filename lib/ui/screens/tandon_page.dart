@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_seladaku/providers/tandon_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend_seladaku/providers/area_provider.dart';
 import 'package:frontend_seladaku/models/area_model.dart';
@@ -24,17 +25,22 @@ class _TandonPageState extends State<TandonPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Ambil arguments satu kali saja saat halaman pertama kali dibuka
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is AreaModel && initialArea == null) {
       initialArea = args;
+
+      Future.microtask(() {
+        if (mounted) {
+          context.read<TandonProvider>().getTandonByArea(initialArea!.idArea);
+        }
+      });
     }
   }
 
-  // Fungsi untuk eksekusi hapus area
   void _handleDeleteArea(AreaModel area) async {
     final areaProv = Provider.of<AreaProvider>(context, listen: false);
-    final navigator = Navigator.of(context); // Simpan state navigator
+
+    final navigator = Navigator.of(context);
 
     showDialog(
       context: context,
@@ -42,38 +48,23 @@ class _TandonPageState extends State<TandonPage> {
       builder: (context) => WConfirmationDeleteDialog(
         title: "Hapus Kebun?",
         message:
-            "Apakah Anda yakin ingin menghapus '${area.nama}'? Data tandon di dalamnya tidak dapat dikembalikan.",
+            "Apakah Anda yakin ingin menghapus '${area.nama}'? Data tandon di dalamnya akan ikut terhapus.",
         onConfirm: () async {
-          Navigator.pop(context); // 1. Tutup dialog konfirmasi
+          navigator.pop();
 
           bool sukses = await areaProv.removeArea(area.idArea);
-
-          if (sukses) {
-            // 2. Tampilkan Dialog Sukses
-            if (context.mounted) {
-              await showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (c) => WSuccessDialog(
-                  message: "Kebun berhasil dihapus",
-                  onOkPressed: () => Navigator.pop(c), // Tutup dialog sukses
-                ),
-              );
-
-              // 3. Kembali ke halaman list kebun (KebunPage)
-              navigator.pop();
-            }
-          } else {
-            // Tampilkan dialog gagal jika error
-            if (context.mounted) {
-              showDialog(
-                context: context,
-                builder: (c) => WFailedDialog(
-                  message: "Gagal menghapus kebun. Silakan coba lagi.",
-                  onOkPressed: () => Navigator.pop(c),
-                ),
-              );
-            }
+          if (sukses && mounted) {
+            await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (c) => WSuccessDialog(
+                message: "Kebun berhasil dihapus",
+                onOkPressed: () {
+                  Navigator.pop(c);
+                  navigator.pop();
+                },
+              ),
+            );
           }
         },
       ),
@@ -89,34 +80,22 @@ class _TandonPageState extends State<TandonPage> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: AppColor.text),
-
-        // MENGGUNAKAN CONSUMER AGAR JUDUL UPDATE OTOMATIS
+        toolbarHeight: 75,
         title: Consumer<AreaProvider>(
           builder: (context, areaProv, child) {
-            // Cari data area terbaru dari list di provider
             final areaTerbaru = areaProv.areas.firstWhere(
               (a) => a.idArea == initialArea!.idArea,
               orElse: () => initialArea!,
             );
-
-            return Row(
-              mainAxisAlignment: .start,
-              children: [
-                WText(
-                  isi: areaTerbaru.nama,
-                  fw: FontWeight.bold,
-                  ukuranFont: 22,
-                  color: AppColor.text,
-                  align: .start,
-                ),
-              ],
+            return WText(
+              isi: areaTerbaru.nama,
+              fw: FontWeight.bold,
+              ukuranFont: 23,
+              color: AppColor.text,
             );
           },
         ),
-        centerTitle: true,
-        toolbarHeight: 70,
         actions: [
-          // TOMBOL EDIT
           Consumer<AreaProvider>(
             builder: (context, areaProv, child) {
               final areaTerbaru = areaProv.areas.firstWhere(
@@ -124,18 +103,16 @@ class _TandonPageState extends State<TandonPage> {
                 orElse: () => initialArea!,
               );
               return IconButton(
-                onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    AppRoutes.tambahKebun,
-                    arguments: areaTerbaru, // Kirim data terbaru ke form edit
-                  );
-                },
-                icon: const Icon(Icons.edit, color: AppColor.text),
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  AppRoutes.tambahKebun,
+                  arguments: areaTerbaru,
+                ),
+                icon: const Icon(Icons.edit),
               );
             },
           ),
-          // TOMBOL DELETE
+
           Consumer<AreaProvider>(
             builder: (context, areaProv, child) {
               final areaTerbaru = areaProv.areas.firstWhere(
@@ -150,31 +127,52 @@ class _TandonPageState extends State<TandonPage> {
           ),
         ],
       ),
-      body: Consumer<AreaProvider>(
-        builder: (context, areaProv, child) {
-          final areaTerbaru = areaProv.areas.firstWhere(
-            (a) => a.idArea == initialArea!.idArea,
-            orElse: () => initialArea!,
-          );
 
-          return ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 5),
-            children: [
-              const SizedBox(height: 10),
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.detailTandon);
-                },
-                child: WTandonCard(
-                  namaKebun: areaTerbaru.nama,
-                  namaTandon: "Tandon 1",
-                  mode: "Mode Hujan",
-                  ph: 7.1,
-                  ppm: 102.5,
-                  volume: "202",
+      body: Consumer<TandonProvider>(
+        builder: (context, tandonProv, child) {
+          if (tandonProv.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (tandonProv.listTandon.isEmpty) {
+            return Column(
+              children: [
+                const WNullKebuntandon(
+                  keterangan: "Tandon Kosong",
+                  deskripsi:
+                      "Belum ada tandon di kebun ini. Tambahkan tandon untuk mulai memantau.",
+                  icon: Icons.opacity,
                 ),
-              ),
-            ],
+              ],
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: () => tandonProv.getTandonByArea(initialArea!.idArea),
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
+              itemCount: tandonProv.listTandon.length,
+              itemBuilder: (context, index) {
+                final tandon = tandonProv.listTandon[index];
+
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      AppRoutes.detailTandon,
+                      arguments: {
+                        "tandon": tandon,
+                        "namaArea": initialArea!.nama,
+                      },
+                    );
+                  },
+                  child: WTandonCard(
+                    namaKebun: initialArea!.nama,
+                    tandon: tandon,
+                  ),
+                );
+              },
+            ),
           );
         },
       ),
@@ -188,7 +186,7 @@ class _TandonPageState extends State<TandonPage> {
         },
         style: ButtonStyle(
           padding: const WidgetStatePropertyAll(
-            EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+            EdgeInsets.symmetric(horizontal: 17, vertical: 17),
           ),
           backgroundColor: const WidgetStatePropertyAll(AppColor.primary),
           shape: WidgetStatePropertyAll(

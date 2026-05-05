@@ -6,13 +6,11 @@ import 'package:frontend_seladaku/ui/widgets/w_text.dart';
 import 'package:intl/intl.dart';
 
 class WDataTandon extends StatelessWidget {
-  final String namaKebun;
   final String namaTandon;
   final DateTime tanggalTanam;
 
   const WDataTandon({
     super.key,
-    required this.namaKebun,
     required this.namaTandon,
     required this.tanggalTanam,
   });
@@ -40,8 +38,6 @@ class WDataTandon extends StatelessWidget {
         children: [
           WText(isi: "Data Tandon", fw: .bold),
           SizedBox(height: 10),
-          WText(isi: "Kebun : $namaKebun", ukuranFont: 15),
-          SizedBox(height: 2),
           WText(isi: "Tandon : $namaTandon", ukuranFont: 15),
           SizedBox(height: 2),
           WText(isi: "Tanggal Tanam : $tanggalFormatted ", ukuranFont: 15),

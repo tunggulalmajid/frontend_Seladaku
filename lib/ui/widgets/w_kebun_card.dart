@@ -7,21 +7,15 @@ import 'package:frontend_seladaku/utils/app_colors.dart';
 class WKebunCard extends StatelessWidget {
   final String namaKebun;
   final int jumlahTandon;
-  final bool isAktif;
 
-  const WKebunCard({
-    super.key,
-    required this.namaKebun,
-    this.jumlahTandon = 0,
-    this.isAktif = true,
-  });
+  const WKebunCard({super.key, required this.namaKebun, this.jumlahTandon = 0});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(color: AppColor.primary, width: 0.5),
@@ -37,14 +31,14 @@ class WKebunCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(13),
+            padding: EdgeInsets.all(15),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(7),
-              color: Color(0xFFE0F2F1),
+              color: AppColor.primaryAccent,
             ),
-            child: Icon(Icons.air, size: 30),
+            child: Icon(Icons.grass_sharp, size: 30, color: AppColor.primary),
           ),
-          SizedBox(width: 10),
+          SizedBox(width: 15),
           Expanded(
             child: Column(
               crossAxisAlignment: .start,
@@ -58,7 +52,6 @@ class WKebunCard extends StatelessWidget {
               ],
             ),
           ),
-          WStatusComponent(text: "Aktif"),
         ],
       ),
     );
