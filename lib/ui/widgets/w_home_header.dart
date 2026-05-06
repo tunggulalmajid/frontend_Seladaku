@@ -30,6 +30,7 @@ class WHomeHeader extends StatelessWidget {
               children: [
                 WText(
                   isi: "Hello, $userName",
+                  align: .start,
                   ukuranFont: 30,
                   fw: FontWeight.bold,
                 ),

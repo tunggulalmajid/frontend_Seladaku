@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 class WConfirmationDeleteDialog extends StatelessWidget {
   final String title;
   final String message;
+  final String confirmText;
   final VoidCallback onConfirm;
 
   const WConfirmationDeleteDialog({
     super.key,
     required this.title,
     required this.message,
+    this.confirmText = "Hapus",
     required this.onConfirm,
   });
 
@@ -83,8 +85,8 @@ class WConfirmationDeleteDialog extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 15),
                     ),
                     onPressed: onConfirm,
-                    child: const Text(
-                      "Hapus",
+                    child: Text(
+                      confirmText,
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,

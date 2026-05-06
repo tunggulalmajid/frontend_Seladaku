@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_seladaku/ui/widgets/w_confirmation_delete_dialog.dart';
 import 'package:frontend_seladaku/ui/widgets/w_header.dart';
 import 'package:frontend_seladaku/ui/widgets/w_text.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -124,12 +125,26 @@ class ProfilPage extends StatelessWidget {
                 _buildMenuTile(
                   label: "Log out",
                   labelColor: Colors.red,
-                  onTap: () {
-                    context.read<AuthProvider>().logout();
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      AppRoutes.login,
-                      (route) => false,
+                  onTap: () async {
+                    final navigator = Navigator.of(context);
+                    await showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => WConfirmationDeleteDialog(
+                        title: "konfirmasi",
+                        message:
+                            "Apakah Anda yakin ingin keluar dari aplikasi ?",
+                        confirmText: "Keluar",
+                        onConfirm: () async {
+                          navigator.pop();
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            AppRoutes.login,
+                            (route) => false,
+                          );
+                          context.read<AuthProvider>().logout();
+                        },
+                      ),
                     );
                   },
                 ),
