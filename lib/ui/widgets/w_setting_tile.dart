@@ -4,18 +4,26 @@ import 'package:frontend_seladaku/utils/app_colors.dart';
 
 class WSettingTile extends StatelessWidget {
   final String title;
-  final String buttonText;
-  final bool switchValue;
-  final ValueChanged<bool> onSwitchChanged;
-  final VoidCallback onPressed;
+  final bool isAuto; // Nilai Otomatisasi
+  final ValueChanged<bool> onAutoChanged;
+
+  // Status Aktuator
+  final bool s1Value;
+  final bool s2Value;
+  final bool pompaValue;
+
+  // Callback untuk kontrol manual
+  final Function(String target, bool value) onManualControl;
 
   const WSettingTile({
     super.key,
     required this.title,
-    required this.buttonText,
-    required this.switchValue,
-    required this.onSwitchChanged,
-    required this.onPressed,
+    required this.isAuto,
+    required this.onAutoChanged,
+    required this.s1Value,
+    required this.s2Value,
+    required this.pompaValue,
+    required this.onManualControl,
   });
 
   @override
@@ -26,51 +34,73 @@ class WSettingTile extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              WText(isi: title, fw: FontWeight.bold, ukuranFont: 18),
-              Switch(
-                value: switchValue,
-                onChanged: onSwitchChanged,
-                activeThumbColor: Colors.white,
-                activeTrackColor:
-                    AppColor.primary, // Sesuaikan dengan warna tema Anda
-              ),
-            ],
+          // Row Utama: Otomatisasi
+          _buildSwitchRow(
+            label: title,
+            value: isAuto,
+            onChanged: onAutoChanged,
+            isBold: true,
           ),
-          const SizedBox(height: 15),
-          SizedBox(
-            width: double.infinity,
-            height: 45,
-            child: ElevatedButton(
-              onPressed: switchValue
-                  ? onPressed
-                  : null, // Disable jika switch off
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey[300],
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: WText(
-                isi: buttonText,
-                color: AppColor.text80,
-                fw: FontWeight.w500,
-                ukuranFont: 15,
-              ),
+          const SizedBox(height: 10),
+
+          // Daftar Aktuator Manual (Read-only jika isAuto == true)
+          _buildSwitchRow(
+            label: "Solenoid Tandon",
+            value: s1Value,
+            onChanged: isAuto ? null : (val) => onManualControl("s1", val),
+          ),
+          _buildSwitchRow(
+            label: "Solenoid Paralon",
+            value: s2Value,
+            onChanged: isAuto ? null : (val) => onManualControl("s2", val),
+          ),
+          _buildSwitchRow(
+            label: "Pompa",
+            value: pompaValue,
+            onChanged: isAuto ? null : (val) => onManualControl("pompa", val),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwitchRow({
+    required String label,
+    required bool value,
+    required ValueChanged<bool>? onChanged,
+    bool isBold = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          WText(
+            isi: label,
+            fw: isBold ? FontWeight.bold : FontWeight.w400,
+            ukuranFont: 17,
+            color: AppColor.text,
+          ),
+          Transform.scale(
+            scale: 1.1,
+            child: Switch(
+              value: value,
+              onChanged: onChanged,
+              activeTrackColor: AppColor.primary,
+              activeThumbColor: Colors.white,
+              // Jika onChanged null, switch akan terlihat disable (greyed out)
             ),
           ),
         ],

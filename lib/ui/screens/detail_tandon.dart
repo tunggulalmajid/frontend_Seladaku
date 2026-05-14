@@ -1,8 +1,10 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import 'package:frontend_seladaku/models/tandon_model.dart';
 import 'package:frontend_seladaku/providers/tandon_provider.dart';
+import 'package:frontend_seladaku/services/socket_service.dart';
 import 'package:frontend_seladaku/ui/widgets/w_button.dart';
 import 'package:frontend_seladaku/ui/widgets/w_confirmation_delete_dialog.dart';
 import 'package:frontend_seladaku/ui/widgets/w_data_tandon.dart';
@@ -12,7 +14,6 @@ import 'package:frontend_seladaku/ui/widgets/w_text.dart';
 import 'package:frontend_seladaku/ui/widgets/w_setting_tile.dart';
 import 'package:frontend_seladaku/utils/app_colors.dart';
 import 'package:frontend_seladaku/utils/app_routes.dart';
-import 'package:provider/provider.dart';
 
 class DetailTandon extends StatefulWidget {
   const DetailTandon({super.key});
@@ -22,61 +23,70 @@ class DetailTandon extends StatefulWidget {
 }
 
 class _DetailTandonState extends State<DetailTandon> {
+  final SocketService _socketService = SocketService();
   TandonModel? initialData;
   String? namaArea;
+
+  @override
+  void initState() {
+    super.initState();
+    _socketService.connect();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (initialData != null) {
+        _socketService.listenToSensor(initialData!.idTandon, (data) {
+          if (mounted) {
+            context.read<TandonProvider>().updateTandonFromSocket(
+              initialData!.idTandon,
+              data,
+            );
+          }
+        });
+      }
+    });
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final args = ModalRoute.of(context)?.settings.arguments;
-
     if (args is Map<String, dynamic> && initialData == null) {
       setState(() {
         initialData = args["tandon"];
         namaArea = args["namaArea"];
       });
-
-      log("$initialData");
     }
   }
 
-  void _toggleSetting(int id, String key, bool value) async {
-    final tandonProv = Provider.of<TandonProvider>(context, listen: false);
-
-    await tandonProv.updateTandon(id, {key: value ? 1 : 0});
+  @override
+  void dispose() {
+    if (initialData != null) {
+      _socketService.stopListening(initialData!.idTandon);
+    }
+    _socketService.dispose();
+    super.dispose();
   }
 
-  void _handleDelete(int idTandon) async {
-    final tandonProv = Provider.of<TandonProvider>(context, listen: false);
-    final navigator = Navigator.of(context);
+  // Fungsi pembantu untuk membatasi koma pada pH dan PPM
+  String formatSensor(double? value) {
+    if (value == null || value == 0.0) return "0.0";
+    return value.toStringAsFixed(2);
+  }
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => WConfirmationDeleteDialog(
-        title: "Hapus Tandon?",
-        message:
-            "Semua riwayat dan data sensor pada tandon ini akan dihapus permanen.",
-        onConfirm: () async {
-          navigator.pop();
+  void _sendManualAction(TandonModel tandon, String target, bool val) {
+    if (tandon.deviceId == null) return;
 
-          bool sukses = await tandonProv.removeTandon(idTandon);
+    // Optimistic Update untuk kontrol manual individu
+    context.read<TandonProvider>().updateTandonFromSocket(tandon.idTandon, {
+      if (target == "s1") 'status_s1': val ? 'ON' : 'OFF',
+      if (target == "s2") 'status_s2': val ? 'ON' : 'OFF',
+      if (target == "pompa") 'status_pompa': val ? 'ON' : 'OFF',
+    });
 
-          if (sukses && mounted) {
-            await showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (c) => WSuccessDialog(
-                message: "Tandon berhasil dihapus",
-                onOkPressed: () {
-                  Navigator.pop(c);
-                  navigator.pop();
-                },
-              ),
-            );
-          }
-        },
-      ),
+    _socketService.sendControl(
+      deviceId: tandon.deviceId!,
+      target: target,
+      command: val ? "on" : "off",
     );
   }
 
@@ -100,35 +110,9 @@ class _DetailTandonState extends State<DetailTandon> {
               isi: tandon.namaTandon,
               fw: FontWeight.bold,
               ukuranFont: 23,
-              color: AppColor.text,
             );
           },
         ),
-        actions: [
-          Consumer<TandonProvider>(
-            builder: (context, prov, _) {
-              final tandonTerbaru = prov.listTandon.firstWhere(
-                (t) => t.idTandon == initialData!.idTandon,
-                orElse: () => initialData!,
-              );
-
-              return IconButton(
-                onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    AppRoutes.tandonCreate,
-                    arguments: tandonTerbaru,
-                  );
-                },
-                icon: const Icon(Icons.edit),
-              );
-            },
-          ),
-          IconButton(
-            onPressed: () => _handleDelete(initialData!.idTandon),
-            icon: const Icon(Icons.delete, color: AppColor.redStatus),
-          ),
-        ],
       ),
       body: Consumer<TandonProvider>(
         builder: (context, prov, _) {
@@ -140,28 +124,47 @@ class _DetailTandonState extends State<DetailTandon> {
           return ListView(
             padding: const EdgeInsets.only(bottom: 30),
             children: [
+              // Informasi Tandon
               WDataTandon(
                 namaTandon: tandon.namaTandon,
                 tanggalTanam: tandon.tanggalTanam,
               ),
+
+              // Card Sensor dengan pH yang sudah diformat 2 angka di belakang koma
               WTandonCard(namaKebun: namaArea ?? '-', tandon: tandon),
 
+              // Tile Pengaturan Aktuator
               WSettingTile(
+                key: ValueKey(
+                  "${tandon.idTandon}_${tandon.statusPompa}_${tandon.modeOtomatis}",
+                ),
                 title: "Otomatisasi",
-                buttonText: "Kendali Manual Pompa",
-                switchValue: tandon.modeOtomatis,
-                onSwitchChanged: (value) =>
-                    _toggleSetting(tandon.idTandon, "mode_otomatis", value),
-                onPressed: () {},
-              ),
+                isAuto: tandon.modeOtomatis,
+                s1Value: tandon.statusS1 == 'ON',
+                s2Value: tandon.statusS2 == 'ON',
+                pompaValue: tandon.statusPompa == 'ON',
+                onAutoChanged: (val) {
+                  if (tandon.deviceId != null) {
+                    // Update lokal: Jika Auto aktif, S1 & Pompa ON, S2 OFF (Solenoid Paralon Mati)
+                    prov.updateTandonFromSocket(tandon.idTandon, {
+                      'mode_otomatis': val ? 1 : 0,
+                      if (val) ...{
+                        'status_s1': 'ON',
+                        'status_s2': 'OFF',
+                        'status_pompa': 'ON',
+                      },
+                    });
 
-              WSettingTile(
-                title: "Notifikasi",
-                buttonText: "Atur Parameter & Peringatan",
-                switchValue: tandon.isNotifAktif,
-                onSwitchChanged: (value) =>
-                    _toggleSetting(tandon.idTandon, "is_notif_aktif", value),
-                onPressed: () {},
+                    _socketService.sendControl(
+                      deviceId: tandon.deviceId!,
+                      target: "mode",
+                      command: val ? "auto" : "manual",
+                    );
+                  }
+                },
+                onManualControl: (target, val) {
+                  _sendManualAction(tandon, target, val);
+                },
               ),
 
               const SizedBox(height: 20),
@@ -171,7 +174,6 @@ class _DetailTandonState extends State<DetailTandon> {
                   text: tandon.deviceId == null
                       ? "Hubungkan Perangkat IoT"
                       : "Ganti Perangkat IoT",
-                  textSize: 14,
                   onPressed: () {},
                 ),
               ),

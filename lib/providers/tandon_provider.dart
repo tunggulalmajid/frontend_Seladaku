@@ -78,6 +78,31 @@ class TandonProvider with ChangeNotifier {
     return success;
   }
 
+  void updateTandonFromSocket(int idTandon, Map<String, dynamic> newData) {
+    final index = _listTandon.indexWhere((t) => t.idTandon == idTandon);
+
+    if (index != -1) {
+      // WAJIB: Gunakan copyWith agar referensi objek berubah
+      _listTandon[index] = _listTandon[index].copyWith(
+        ph: newData['ph']?.toDouble(),
+        ppm: newData['ppm']?.toDouble(),
+        volume: newData['volume_air']?.toDouble(),
+        isHujan: newData['is_hujan'] == 1 || newData['is_hujan'] == true,
+        statusS1: newData['status_s1'],
+        statusS2: newData['status_s2'],
+        statusPompa: newData['status_pompa'],
+        modeOtomatis: newData['mode_otomatis'] != null
+            ? (newData['mode_otomatis'] == 1 ||
+                  newData['mode_otomatis'] == true)
+            : null,
+        lastSeen: DateTime.now(),
+      );
+
+      notifyListeners(); // Memicu re-build pada Consumer
+      log("Provider: Data updated for Tandon $idTandon");
+    }
+  }
+
   // 4. Delete Tandon
   Future<bool> removeTandon(int idTandon) async {
     bool success = await _tandonService.deleteTandon(idTandon);

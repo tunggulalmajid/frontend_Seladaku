@@ -43,6 +43,52 @@ class TandonModel {
     required this.idArea,
   });
 
+  TandonModel copyWith({
+    int? idTandon,
+    String? namaTandon,
+    DateTime? tanggalTanam,
+    int? idArea,
+    String? deviceId,
+    bool? modeOtomatis,
+    bool? isNotifAktif,
+    String? statusS1,
+    String? statusS2,
+    String? statusPompa,
+    double? minPh,
+    double? maxPh,
+    double? minPpm,
+    double? maxPpm,
+    double? minVolume,
+    DateTime? lastSeen,
+    double? ph,
+    double? ppm,
+    double? volume,
+    bool? isHujan,
+  }) {
+    return TandonModel(
+      idTandon: idTandon ?? this.idTandon,
+      namaTandon: namaTandon ?? this.namaTandon,
+      tanggalTanam: tanggalTanam ?? this.tanggalTanam,
+      idArea: idArea ?? this.idArea,
+      deviceId: deviceId ?? this.deviceId,
+      modeOtomatis: modeOtomatis ?? this.modeOtomatis,
+      isNotifAktif: isNotifAktif ?? this.isNotifAktif,
+      statusS1: statusS1 ?? this.statusS1,
+      statusS2: statusS2 ?? this.statusS2,
+      statusPompa: statusPompa ?? this.statusPompa,
+      minPh: minPh ?? this.minPh,
+      maxPh: maxPh ?? this.maxPh,
+      minPpm: minPpm ?? this.minPpm,
+      maxPpm: maxPpm ?? this.maxPpm,
+      minVolume: minVolume ?? this.minVolume,
+      lastSeen: lastSeen ?? this.lastSeen,
+      ph: ph ?? this.ph,
+      ppm: ppm ?? this.ppm,
+      volume: volume ?? this.volume,
+      isHujan: isHujan ?? this.isHujan,
+    );
+  }
+
   factory TandonModel.fromJson(Map<String, dynamic> json) {
     // Fungsi bantuan sakti agar int/double tidak error
     double toDouble(dynamic value) {

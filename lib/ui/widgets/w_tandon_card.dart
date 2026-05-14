@@ -122,19 +122,22 @@ class WTandonCard extends StatelessWidget {
               _buildIndicator(
                 Icons.science_outlined,
                 "pH",
-                "${tandon.ph ?? 0.0}",
+                // Gunakan toStringAsFixed(2) untuk membatasi koma
+                tandon.ph?.toStringAsFixed(2) ?? "0.00",
               ),
               const SizedBox(width: 10),
               _buildIndicator(
                 Icons.speed_outlined,
                 "PPM",
-                "${tandon.ppm ?? 0.0}",
+                // PPM biasanya bulat, toStringAsFixed(0) atau (1) sudah cukup
+                tandon.ppm?.toStringAsFixed(0) ?? "0",
               ),
               const SizedBox(width: 10),
               _buildIndicator(
                 Icons.opacity_rounded,
                 "Volume",
-                "${tandon.volume?.toStringAsFixed(1) ?? "0"}",
+                // Sesuai permintaan Anda sebelumnya
+                tandon.volume?.toStringAsFixed(1) ?? "0",
               ),
             ],
           ),
