@@ -4,9 +4,9 @@ import 'package:frontend_seladaku/ui/widgets/w_header.dart';
 import 'package:frontend_seladaku/ui/widgets/w_text.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../../../providers/auth_provider.dart';
-import '../../../utils/app_colors.dart';
-import '../../../utils/app_routes.dart';
+import '../../../../providers/auth_provider.dart';
+import '../../../../utils/app_colors.dart';
+import '../../../../utils/app_routes.dart';
 
 class ProfilPage extends StatelessWidget {
   const ProfilPage({super.key});

@@ -10,15 +10,16 @@ import 'package:frontend_seladaku/services/area_service.dart';
 import 'package:frontend_seladaku/services/auth_service.dart';
 import 'package:frontend_seladaku/services/dio_interceptor.dart';
 import 'package:frontend_seladaku/services/tandon_service.dart';
-import 'package:frontend_seladaku/ui/screens/create_kebun.dart';
-import 'package:frontend_seladaku/ui/screens/create_tandon.dart';
-import 'package:frontend_seladaku/ui/screens/detail_tandon.dart';
-import 'package:frontend_seladaku/ui/screens/edit_profile_page.dart';
+import 'package:frontend_seladaku/ui/screens/kebun/create_kebun.dart';
+import 'package:frontend_seladaku/ui/screens/tandon/create_iot.dart';
+import 'package:frontend_seladaku/ui/screens/tandon/create_tandon.dart';
+import 'package:frontend_seladaku/ui/screens/tandon/detail_tandon.dart';
+import 'package:frontend_seladaku/ui/screens/profile/edit_profile_page.dart';
 import 'package:frontend_seladaku/ui/screens/main_page.dart';
-import 'package:frontend_seladaku/ui/screens/login_page.dart';
-import 'package:frontend_seladaku/ui/screens/register_page.dart';
+import 'package:frontend_seladaku/ui/screens/auth/login_page.dart';
+import 'package:frontend_seladaku/ui/screens/auth/register_page.dart';
 import 'package:frontend_seladaku/ui/screens/splash.dart';
-import 'package:frontend_seladaku/ui/screens/tandon_page.dart';
+import 'package:frontend_seladaku/ui/screens/tandon/tandon_page.dart';
 
 import 'package:frontend_seladaku/utils/app_routes.dart';
 import 'package:provider/provider.dart';
@@ -88,6 +89,7 @@ class MyApp extends StatelessWidget {
         AppRoutes.tandonIndex: (context) => TandonPage(),
         AppRoutes.tandonCreate: (context) => CreateTandon(),
         AppRoutes.detailTandon: (context) => DetailTandon(),
+        AppRoutes.createIot: (context) => CreateIot(),
       },
     );
   }

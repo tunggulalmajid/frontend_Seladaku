@@ -8,4 +8,5 @@ class AppRoutes {
   static const String tandonIndex = '/tandon';
   static const String tandonCreate = '/tandon/create';
   static const String detailTandon = '/tandon/show';
+  static const String createIot = '/tandon/iot';
 }

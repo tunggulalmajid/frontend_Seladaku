@@ -5,13 +5,13 @@ import 'package:frontend_seladaku/ui/widgets/w_failed_dialog.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
-import '../../dto/edit_profile_dto.dart';
-import '../../utils/app_colors.dart';
-import '../widgets/w_button.dart';
-import '../widgets/w_text_field.dart';
-import '../widgets/w_text.dart';
-import '../widgets/w_success_dialog.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../dto/edit_profile_dto.dart';
+import '../../../utils/app_colors.dart';
+import '../../widgets/w_button.dart';
+import '../../widgets/w_text_field.dart';
+import '../../widgets/w_text.dart';
+import '../../widgets/w_success_dialog.dart';
 import 'map_picker_page.dart';
 
 class EditProfilePage extends StatefulWidget {

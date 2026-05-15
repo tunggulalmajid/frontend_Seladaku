@@ -57,6 +57,27 @@ class TandonService extends ApiService {
     }
   }
 
+  // --- TAMBAHAN ENDPOINT PAIRING DEVICE ---
+  Future<bool> pairDevice(int idTandon, String deviceId) async {
+    try {
+      log("Menghubungkan device ke Tandon ID: $idTandon");
+
+      // Method diganti POST, URL disesuaikan dengan Swagger: /tandon/pair-device/{id}
+      final response = await dio.post(
+        "/tandon/pair-device/$idTandon",
+        data: {
+          "device_id": deviceId, // Sesuai dengan Example Value Request Body
+        },
+      );
+
+      log("Respon server: ${response.data}");
+      return response.data['success'] == true;
+    } catch (e) {
+      log("Error pairDevice Service: $e");
+      return false;
+    }
+  }
+
   // Hapus area
   Future<bool> deleteTandon(int idTandon) async {
     try {

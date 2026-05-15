@@ -103,6 +103,28 @@ class TandonProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> connectDevice(int idTandon, String deviceId) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      bool success = await _tandonService.pairDevice(idTandon, deviceId);
+      if (success) {
+        // Cari tandon di list lokal dan update field deviceId secara reaktif
+        final index = _listTandon.indexWhere((t) => t.idTandon == idTandon);
+        if (index != -1) {
+          _listTandon[index] = _listTandon[index].copyWith(deviceId: deviceId);
+        }
+      }
+      return success;
+    } catch (e) {
+      log("Error connectDevice Provider: $e");
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   // 4. Delete Tandon
   Future<bool> removeTandon(int idTandon) async {
     bool success = await _tandonService.deleteTandon(idTandon);

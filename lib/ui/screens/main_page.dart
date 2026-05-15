@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_seladaku/ui/screens/home_page.dart';
-import 'package:frontend_seladaku/ui/screens/kebun_page.dart';
-import 'package:frontend_seladaku/ui/screens/profil_page.dart';
+import 'package:frontend_seladaku/ui/screens/kebun/kebun_page.dart';
+import 'package:frontend_seladaku/ui/screens/profile/profil_page.dart';
 import 'package:frontend_seladaku/utils/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:google_fonts/google_fonts.dart';
