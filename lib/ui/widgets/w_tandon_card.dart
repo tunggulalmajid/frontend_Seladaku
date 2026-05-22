@@ -136,8 +136,7 @@ class WTandonCard extends StatelessWidget {
               _buildIndicator(
                 Icons.opacity_rounded,
                 "Volume",
-                // Sesuai permintaan Anda sebelumnya
-                tandon.volume?.toStringAsFixed(1) ?? "0",
+                "${tandon.volume?.toStringAsFixed(0) ?? 0} %",
               ),
             ],
           ),
