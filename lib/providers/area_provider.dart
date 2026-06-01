@@ -1,4 +1,7 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:frontend_seladaku/models/dashboard_area_model.dart';
 import '../models/area_model.dart';
 import '../services/area_service.dart';
 
@@ -8,6 +11,11 @@ class AreaProvider with ChangeNotifier {
   bool _isLoading = false;
 
   List<AreaModel> get areas => _areas;
+  List<DashboardAreaModel> _listDashboard = [];
+  List<DashboardAreaModel> get listDashboard => _listDashboard;
+
+  bool _isDashboardLoading = false;
+  bool get isDashboardLoading => _isDashboardLoading;
   bool get isLoading => _isLoading;
 
   // Dipanggil di main.dart untuk menyuntikkan service yang sudah siap
@@ -25,6 +33,20 @@ class AreaProvider with ChangeNotifier {
       debugPrint("Error FetchAreas: $e");
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchDashboardData() async {
+    _isDashboardLoading = true;
+    notifyListeners();
+    try {
+      _listDashboard = await _areaService.getDashboardSummary();
+      log("berhasil mengambil data");
+    } catch (e) {
+      log("Error fetchDashboardData Provider: $e");
+    } finally {
+      _isDashboardLoading = false;
       notifyListeners();
     }
   }

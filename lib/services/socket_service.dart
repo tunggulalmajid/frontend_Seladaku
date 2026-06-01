@@ -7,7 +7,7 @@ class SocketService {
   void connect() {
     // Sesuaikan URL dengan IP backend Anda
     socket = IO.io(
-      'http://10.101.140.218:3000',
+      'http://seladaku.kodetalma.my.id',
       IO.OptionBuilder()
           .setTransports(['websocket'])
           .enableAutoConnect()

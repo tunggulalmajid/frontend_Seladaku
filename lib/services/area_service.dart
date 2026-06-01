@@ -1,4 +1,8 @@
 // import 'package:dio/dio.dart';
+import 'dart:developer';
+
+import 'package:frontend_seladaku/models/dashboard_area_model.dart';
+
 import '../models/area_model.dart';
 import 'api_service.dart';
 
@@ -16,6 +20,28 @@ class AreaService extends ApiService {
       return [];
     } catch (e) {
       rethrow;
+    }
+  }
+
+  Future<List<DashboardAreaModel>> getDashboardSummary() async {
+    try {
+      final response = await dio.get(
+        "/dashboard/summary",
+      ); // Jalur endpoint Express-mu
+
+      if (response.data['success'] == true) {
+        // Ingat, response kamu berwujud: response.data['data']['data'] atau response.data['data']
+        // Sesuaikan dengan return pembungkus dari controller Node.js kamu
+        List rawList = await response.data['data']['data'];
+        log(rawList.toString());
+        return rawList
+            .map((json) => DashboardAreaModel.fromJson(json))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      log("Error getDashboardSummary Service: $e");
+      return [];
     }
   }
 

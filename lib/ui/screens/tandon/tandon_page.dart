@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:frontend_seladaku/providers/tandon_provider.dart';
 import 'package:provider/provider.dart';
@@ -25,15 +27,42 @@ class _TandonPageState extends State<TandonPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments;
-    if (args is AreaModel && initialArea == null) {
-      initialArea = args;
+    try {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      log("Arguments di TandonPage: $args");
 
-      Future.microtask(() {
-        if (mounted) {
-          context.read<TandonProvider>().getTandonByArea(initialArea!.idArea);
+      if (args != null && initialArea == null) {
+        // KONDISI 1: Jika masuk dari HomePage Dashboard Baru (Membawa Map)
+        if (args is Map<String, dynamic>) {
+          setState(() {
+            initialArea = AreaModel(
+              idArea: args['idArea'],
+              nama: args['namaArea'],
+              status: true,
+              totalTandon: 0,
+            );
+          });
         }
-      });
+        // KONDISI 2: Jika masuk dari KebunPage Lama (Membawa AreaModel)
+        else if (args is AreaModel) {
+          setState(() {
+            initialArea = args;
+          });
+        }
+
+        // Trigger ambil data tandon setelah initialArea berhasil dikonstruksi
+        if (initialArea != null) {
+          Future.microtask(() {
+            if (mounted) {
+              context.read<TandonProvider>().getTandonByArea(
+                initialArea!.idArea,
+              );
+            }
+          });
+        }
+      }
+    } catch (e) {
+      log("error dibagian didChangeDependencies tandon page : $e");
     }
   }
 
@@ -153,7 +182,6 @@ class _TandonPageState extends State<TandonPage> {
               itemCount: tandonProv.listTandon.length,
               itemBuilder: (context, index) {
                 final tandon = tandonProv.listTandon[index];
-
                 return GestureDetector(
                   onTap: () {
                     Navigator.pushNamed(

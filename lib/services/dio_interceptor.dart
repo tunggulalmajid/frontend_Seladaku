@@ -26,7 +26,6 @@ class DioInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     final path = err.requestOptions.path;
-
     
     // 1. Abaikan path publik
     if (path.contains('/login') || path.contains('/register')) {
