@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:frontend_seladaku/models/area_model.dart';
-import 'package:frontend_seladaku/providers/area_provider.dart'; // Tambah import ini untuk sync nama area
+import 'package:frontend_seladaku/providers/area_provider.dart';
 import 'package:frontend_seladaku/providers/riwayat_provider.dart';
 import 'package:frontend_seladaku/ui/widgets/w_sensor_chart.dart';
 import 'package:frontend_seladaku/ui/widgets/w_notification_tile.dart';
@@ -32,6 +32,8 @@ class _DetailTandonState extends State<DetailTandon> {
   TandonModel? initialData;
   String? namaArea;
 
+  RiwayatProvider? _riwayatProvider;
+
   @override
   void initState() {
     super.initState();
@@ -59,6 +61,9 @@ class _DetailTandonState extends State<DetailTandon> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    _riwayatProvider = Provider.of<RiwayatProvider>(context, listen: false);
+
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Map<String, dynamic> && initialData == null) {
       setState(() {
@@ -74,7 +79,9 @@ class _DetailTandonState extends State<DetailTandon> {
       _socketService.stopListening(initialData!.idTandon);
     }
     _socketService.dispose();
-    context.read<RiwayatProvider>().clearData();
+
+    _riwayatProvider?.clearData();
+
     super.dispose();
   }
 
@@ -89,22 +96,17 @@ class _DetailTandonState extends State<DetailTandon> {
         message:
             "Semua riwayat dan data sensor pada tandon ini akan dihapus permanen.",
         onConfirm: () async {
-          // 1. Tutup dialog konfirmasi
           Navigator.pop(dialogCtx);
 
-          // 2. Jalankan aksi hapus ke backend
           bool sukses = await tandonProv.removeTandon(idTandon);
 
           if (sukses && mounted) {
-            // 3. SEGERA KELUAR dari DetailTandon balik ke TandonPage
             Navigator.pop(context);
 
-            // 4. Tarik list data tandon terbaru di area terkait untuk merender ulang TandonPage
             if (initialData != null) {
               await tandonProv.getTandonByArea(initialData!.idArea);
             }
 
-            // 5. Tampilkan dialog sukses di atas permukaan TandonPage yang sudah bersih
             if (mounted) {
               showDialog(
                 context: context,
@@ -112,7 +114,7 @@ class _DetailTandonState extends State<DetailTandon> {
                 builder: (successCtx) => WSuccessDialog(
                   message: "Tandon berhasil dihapus",
                   onOkPressed: () {
-                    Navigator.pop(successCtx); // Tutup dialog sukses murni
+                    Navigator.pop(successCtx);
                   },
                 ),
               );
@@ -145,7 +147,6 @@ class _DetailTandonState extends State<DetailTandon> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // Amankan pengambilan nama kebun ter-update agar jika diubah di kebun page, text card di bawah ikut terganti instan
     String namaAreaTerbaru = namaArea ?? '-';
     try {
       final areaProv = context.watch<AreaProvider>();
@@ -223,10 +224,7 @@ class _DetailTandonState extends State<DetailTandon> {
                 namaTandon: tandon.namaTandon,
                 tanggalTanam: tandon.tanggalTanam,
               ),
-              WTandonCard(
-                namaKebun: namaAreaTerbaru,
-                tandon: tandon,
-              ), // FIXED: Sinkronisasi nama area baru
+              WTandonCard(namaKebun: namaAreaTerbaru, tandon: tandon),
               WSettingTile(
                 key: ValueKey(
                   "${tandon.idTandon}_${tandon.statusPompa}_${tandon.modeOtomatis}_${tandon.statusS1}_${tandon.statusS2}",
