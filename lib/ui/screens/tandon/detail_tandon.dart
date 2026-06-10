@@ -1,5 +1,9 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:frontend_seladaku/models/area_model.dart';
+import 'package:frontend_seladaku/providers/area_provider.dart'; // Tambah import ini untuk sync nama area
+import 'package:frontend_seladaku/providers/riwayat_provider.dart';
+import 'package:frontend_seladaku/ui/widgets/w_sensor_chart.dart';
 import 'package:frontend_seladaku/ui/widgets/w_notification_tile.dart';
 import 'package:provider/provider.dart';
 
@@ -12,7 +16,7 @@ import 'package:frontend_seladaku/ui/widgets/w_success_dialog.dart';
 import 'package:frontend_seladaku/ui/widgets/w_tandon_card.dart';
 import 'package:frontend_seladaku/ui/widgets/w_text.dart';
 import 'package:frontend_seladaku/ui/widgets/w_setting_tile.dart';
-import 'package:frontend_seladaku/ui/widgets/w_button.dart'; // Dipakai lagi untuk tombol kondisional
+import 'package:frontend_seladaku/ui/widgets/w_button.dart';
 import 'package:frontend_seladaku/utils/app_colors.dart';
 import 'package:frontend_seladaku/utils/app_routes.dart';
 
@@ -43,6 +47,11 @@ class _DetailTandonState extends State<DetailTandon> {
             );
           }
         });
+
+        context.read<RiwayatProvider>().fetchRiwayatGrafik(
+          initialData!.idTandon,
+          "harian",
+        );
       }
     });
   }
@@ -65,37 +74,49 @@ class _DetailTandonState extends State<DetailTandon> {
       _socketService.stopListening(initialData!.idTandon);
     }
     _socketService.dispose();
+    context.read<RiwayatProvider>().clearData();
     super.dispose();
   }
 
   void _handleDelete(int idTandon) async {
     final tandonProv = Provider.of<TandonProvider>(context, listen: false);
-    final navigator = Navigator.of(context);
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => WConfirmationDeleteDialog(
+      builder: (dialogCtx) => WConfirmationDeleteDialog(
         title: "Hapus Tandon?",
         message:
             "Semua riwayat dan data sensor pada tandon ini akan dihapus permanen.",
         onConfirm: () async {
-          navigator.pop();
+          // 1. Tutup dialog konfirmasi
+          Navigator.pop(dialogCtx);
 
+          // 2. Jalankan aksi hapus ke backend
           bool sukses = await tandonProv.removeTandon(idTandon);
 
           if (sukses && mounted) {
-            await showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (c) => WSuccessDialog(
-                message: "Tandon berhasil dihapus",
-                onOkPressed: () {
-                  Navigator.pop(c);
-                  navigator.pop();
-                },
-              ),
-            );
+            // 3. SEGERA KELUAR dari DetailTandon balik ke TandonPage
+            Navigator.pop(context);
+
+            // 4. Tarik list data tandon terbaru di area terkait untuk merender ulang TandonPage
+            if (initialData != null) {
+              await tandonProv.getTandonByArea(initialData!.idArea);
+            }
+
+            // 5. Tampilkan dialog sukses di atas permukaan TandonPage yang sudah bersih
+            if (mounted) {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (successCtx) => WSuccessDialog(
+                  message: "Tandon berhasil dihapus",
+                  onOkPressed: () {
+                    Navigator.pop(successCtx); // Tutup dialog sukses murni
+                  },
+                ),
+              );
+            }
           }
         },
       ),
@@ -124,33 +145,62 @@ class _DetailTandonState extends State<DetailTandon> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final currentTandon = context.watch<TandonProvider>().listTandon.firstWhere(
-      (t) => t.idTandon == initialData!.idTandon,
-      orElse: () => initialData!,
-    );
+    // Amankan pengambilan nama kebun ter-update agar jika diubah di kebun page, text card di bawah ikut terganti instan
+    String namaAreaTerbaru = namaArea ?? '-';
+    try {
+      final areaProv = context.watch<AreaProvider>();
+      if (initialData != null) {
+        final kebunCocok = areaProv.areas.firstWhere(
+          (a) => a.nama == namaArea || a.idArea == initialData!.idArea,
+          orElse: () => AreaModel(
+            idArea: 0,
+            nama: namaArea ?? '-',
+            status: true,
+            totalTandon: 0,
+          ),
+        );
+        namaAreaTerbaru = kebunCocok.nama;
+      }
+    } catch (_) {}
 
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 75,
         iconTheme: const IconThemeData(color: AppColor.text),
-        title: WText(
-          isi: currentTandon.namaTandon,
-          fw: FontWeight.bold,
-          ukuranFont: 23,
+        title: Consumer<TandonProvider>(
+          builder: (context, prov, _) {
+            final currentTandon = prov.listTandon.firstWhere(
+              (t) => t.idTandon == initialData!.idTandon,
+              orElse: () => initialData!,
+            );
+            return WText(
+              isi: currentTandon.namaTandon,
+              fw: FontWeight.bold,
+              ukuranFont: 23,
+            );
+          },
         ),
         actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.pushNamed(
-                context,
-                AppRoutes.tandonCreate,
-                arguments: currentTandon,
+          Consumer<TandonProvider>(
+            builder: (context, prov, _) {
+              final currentTandon = prov.listTandon.firstWhere(
+                (t) => t.idTandon == initialData!.idTandon,
+                orElse: () => initialData!,
+              );
+              return IconButton(
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    AppRoutes.tandonCreate,
+                    arguments: currentTandon,
+                  );
+                },
+                icon: const Icon(Icons.edit, color: AppColor.text),
               );
             },
-            icon: const Icon(Icons.edit, color: AppColor.text),
           ),
           IconButton(
-            onPressed: () => _handleDelete(currentTandon.idTandon),
+            onPressed: () => _handleDelete(initialData!.idTandon),
             icon: const Icon(Icons.delete, color: AppColor.redStatus),
           ),
           const SizedBox(width: 10),
@@ -163,23 +213,20 @@ class _DetailTandonState extends State<DetailTandon> {
             orElse: () => initialData!,
           );
 
-          // Boolean checker untuk mendeteksi keberadaan Device IoT
           bool isDeviceConnected =
               tandon.deviceId != null && tandon.deviceId!.isNotEmpty;
 
           return ListView(
             padding: const EdgeInsets.only(bottom: 30),
             children: [
-              // 1. Informasi Tandon
               WDataTandon(
                 namaTandon: tandon.namaTandon,
                 tanggalTanam: tandon.tanggalTanam,
               ),
-
-              // 2. Card Status Sensor Saat Ini
-              WTandonCard(namaKebun: namaArea ?? '-', tandon: tandon),
-
-              // 3. Tile Kontrol Otomatisasi & Relay
+              WTandonCard(
+                namaKebun: namaAreaTerbaru,
+                tandon: tandon,
+              ), // FIXED: Sinkronisasi nama area baru
               WSettingTile(
                 key: ValueKey(
                   "${tandon.idTandon}_${tandon.statusPompa}_${tandon.modeOtomatis}_${tandon.statusS1}_${tandon.statusS2}",
@@ -211,8 +258,6 @@ class _DetailTandonState extends State<DetailTandon> {
                   _sendManualAction(tandon, target, val);
                 },
               ),
-
-              // 4. Tile Pengaturan Notifikasi
               WNotificationTile(
                 switchValue: tandon.isNotifAktif,
                 onSwitchChanged: (value) {
@@ -227,12 +272,8 @@ class _DetailTandonState extends State<DetailTandon> {
                   log("Membuka pengaturan parameter threshold");
                 },
               ),
-
-              const SizedBox(height: 15),
-
-              // 5. --- LOGIKA KONDISIONAL (TOMBOL VS GRAFIK) ---
+              const SizedBox(height: 5),
               if (!isDeviceConnected) ...[
-                // JIKA BELUM ADA DEVICE: Tampilkan tombol Hubungkan Perangkat IoT
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20.0,
@@ -254,32 +295,182 @@ class _DetailTandonState extends State<DetailTandon> {
                   ),
                 ),
               ] else ...[
-                // JIKA DEVICE SUDAH ADA: Tombol hilang, otomatis diganti oleh Grafik Riwayat
                 Container(
                   margin: const EdgeInsets.symmetric(
-                    horizontal: 20,
+                    horizontal: 15,
                     vertical: 5,
                   ),
-                  padding: const EdgeInsets.all(20),
-                  height: 250,
+                  padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withOpacity(0.04),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                  child: const Center(
-                    child: WText(
-                      isi: "📈 Grafik Riwayat Sensor Aktif (pH & PPM)",
-                      ukuranFont: 14,
-                      color: AppColor.primary,
-                      fw: FontWeight.w500,
-                    ),
+                  child: Consumer<RiwayatProvider>(
+                    builder: (context, riwayatProv, _) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const WText(
+                                isi: "Riwayat Sensor",
+                                fw: FontWeight.bold,
+                                ukuranFont: 19,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  reverse: true,
+                                  child: Row(
+                                    children: ["harian", "mingguan", "bulanan"]
+                                        .map((rangeType) {
+                                          bool isSelected =
+                                              riwayatProv.activeRange ==
+                                              rangeType;
+                                          return GestureDetector(
+                                            onTap: () =>
+                                                riwayatProv.fetchRiwayatGrafik(
+                                                  tandon.idTandon,
+                                                  rangeType,
+                                                ),
+                                            child: Container(
+                                              margin: const EdgeInsets.only(
+                                                left: 6,
+                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 6,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: isSelected
+                                                    ? AppColor.primary
+                                                    : Colors.grey.shade100,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: WText(
+                                                isi: rangeType == "harian"
+                                                    ? "Harian"
+                                                    : (rangeType == "mingguan"
+                                                          ? "Mingguan"
+                                                          : "Bulanan"),
+                                                ukuranFont: 11,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : Colors.grey.shade600,
+                                                fw: isSelected
+                                                    ? FontWeight.bold
+                                                    : FontWeight.normal,
+                                              ),
+                                            ),
+                                          );
+                                        })
+                                        .toList(),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 25),
+                          if (riwayatProv.isLoading)
+                            const SizedBox(
+                              height: 250,
+                              child: Center(child: CircularProgressIndicator()),
+                            )
+                          else ...[
+                            const Row(
+                              children: [
+                                Icon(
+                                  Icons.circle,
+                                  color: Colors.green,
+                                  size: 8,
+                                ),
+                                SizedBox(width: 6),
+                                WText(
+                                  isi: "Grafik pH",
+                                  fw: FontWeight.bold,
+                                  ukuranFont: 14,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              height: 140,
+                              child: WSensorChart(
+                                data: riwayatProv.listDataGrafik,
+                                jenisSensor: "ph",
+                              ),
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 15.0),
+                              child: Divider(
+                                color: Color(0xFFF5F5F5),
+                                thickness: 1,
+                              ),
+                            ),
+                            const Row(
+                              children: [
+                                Icon(
+                                  Icons.circle,
+                                  color: Color(0xFFFFB800),
+                                  size: 8,
+                                ),
+                                SizedBox(width: 6),
+                                WText(
+                                  isi: "Grafik PPM",
+                                  fw: FontWeight.bold,
+                                  ukuranFont: 14,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              height: 140,
+                              child: WSensorChart(
+                                data: riwayatProv.listDataGrafik,
+                                jenisSensor: "ppm",
+                              ),
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 15.0),
+                              child: Divider(
+                                color: Color(0xFFF5F5F5),
+                                thickness: 1,
+                              ),
+                            ),
+                            const Row(
+                              children: [
+                                Icon(Icons.circle, color: Colors.blue, size: 8),
+                                SizedBox(width: 6),
+                                WText(
+                                  isi: "Grafik Volume Air",
+                                  fw: FontWeight.bold,
+                                  ukuranFont: 14,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              height: 140,
+                              child: WSensorChart(
+                                data: riwayatProv.listDataGrafik,
+                                jenisSensor: "volume",
+                              ),
+                            ),
+                          ],
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],

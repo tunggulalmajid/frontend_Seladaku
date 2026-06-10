@@ -7,7 +7,6 @@ import 'package:frontend_seladaku/providers/area_provider.dart';
 import 'package:frontend_seladaku/models/area_model.dart';
 import 'package:frontend_seladaku/ui/widgets/w_confirmation_delete_dialog.dart';
 import 'package:frontend_seladaku/ui/widgets/w_success_dialog.dart';
-import 'package:frontend_seladaku/ui/widgets/w_failed_dialog.dart';
 import 'package:frontend_seladaku/ui/widgets/w_null_kebuntandon.dart';
 import 'package:frontend_seladaku/ui/widgets/w_tandon_card.dart';
 import 'package:frontend_seladaku/ui/widgets/w_text.dart';
@@ -29,10 +28,7 @@ class _TandonPageState extends State<TandonPage> {
     super.didChangeDependencies();
     try {
       final args = ModalRoute.of(context)?.settings.arguments;
-      log("Arguments di TandonPage: $args");
-
       if (args != null && initialArea == null) {
-        // KONDISI 1: Jika masuk dari HomePage Dashboard Baru (Membawa Map)
         if (args is Map<String, dynamic>) {
           setState(() {
             initialArea = AreaModel(
@@ -42,15 +38,12 @@ class _TandonPageState extends State<TandonPage> {
               totalTandon: 0,
             );
           });
-        }
-        // KONDISI 2: Jika masuk dari KebunPage Lama (Membawa AreaModel)
-        else if (args is AreaModel) {
+        } else if (args is AreaModel) {
           setState(() {
             initialArea = args;
           });
         }
 
-        // Trigger ambil data tandon setelah initialArea berhasil dikonstruksi
         if (initialArea != null) {
           Future.microtask(() {
             if (mounted) {
@@ -62,37 +55,48 @@ class _TandonPageState extends State<TandonPage> {
         }
       }
     } catch (e) {
-      log("error dibagian didChangeDependencies tandon page : $e");
+      log("Error didChangeDependencies tandon page : $e");
     }
   }
 
   void _handleDeleteArea(AreaModel area) async {
     final areaProv = Provider.of<AreaProvider>(context, listen: false);
 
-    final navigator = Navigator.of(context);
-
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => WConfirmationDeleteDialog(
+      builder: (dialogCtx) => WConfirmationDeleteDialog(
         title: "Hapus Kebun?",
         message:
             "Apakah Anda yakin ingin menghapus '${area.nama}'? Data tandon di dalamnya akan ikut terhapus.",
         onConfirm: () async {
-          navigator.pop();
+          // 1. Tutup dialog konfirmasi terlebih dahulu
+          Navigator.pop(dialogCtx);
+
+          // 2. Jalankan aksi hapus ke backend Express
           bool sukses = await areaProv.removeArea(area.idArea);
+
           if (sukses && mounted) {
-            await showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (c) => WSuccessDialog(
-                message: "Kebun berhasil dihapus",
-                onOkPressed: () {
-                  Navigator.pop(c);
-                  navigator.pop();
-                },
-              ),
-            );
+            // 3. SEGERA KELUAR dari TandonPage ke KebunPage sebelum data ditarik ulang!
+            // Ini trik mendasar agar user tidak melihat penampakan data lama di latar belakang
+            Navigator.pop(context);
+
+            // 4. Tarik data terbaru di latar belakang KebunPage
+            await areaProv.fetchAreas();
+
+            // 5. Tampilkan dialog sukses menggunakan konteks global yang aman di KebunPage
+            if (mounted) {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (successCtx) => WSuccessDialog(
+                  message: "Kebun berhasil dihapus",
+                  onOkPressed: () {
+                    Navigator.pop(successCtx); // Tutup dialog sukses murni
+                  },
+                ),
+              );
+            }
           }
         },
       ),
@@ -105,57 +109,37 @@ class _TandonPageState extends State<TandonPage> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    // Amankan data kebun reaktif agar selalu membaca perubahan nama ter-update dari AreaProvider global
+    final areaTerbaru = context.watch<AreaProvider>().areas.firstWhere(
+      (a) => a.idArea == initialArea!.idArea,
+      orElse: () => initialArea!,
+    );
+
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: AppColor.text),
         toolbarHeight: 75,
-        title: Consumer<AreaProvider>(
-          builder: (context, areaProv, child) {
-            final areaTerbaru = areaProv.areas.firstWhere(
-              (a) => a.idArea == initialArea!.idArea,
-              orElse: () => initialArea!,
-            );
-            return WText(
-              isi: areaTerbaru.nama,
-              fw: FontWeight.bold,
-              ukuranFont: 23,
-              color: AppColor.text,
-            );
-          },
+        title: WText(
+          isi: areaTerbaru.nama, // FIXED: Reaktif membaca data ter-update
+          fw: FontWeight.bold,
+          ukuranFont: 23,
+          color: AppColor.text,
         ),
         actions: [
-          Consumer<AreaProvider>(
-            builder: (context, areaProv, child) {
-              final areaTerbaru = areaProv.areas.firstWhere(
-                (a) => a.idArea == initialArea!.idArea,
-                orElse: () => initialArea!,
-              );
-              return IconButton(
-                onPressed: () => Navigator.pushNamed(
-                  context,
-                  AppRoutes.tambahKebun,
-                  arguments: areaTerbaru,
-                ),
-                icon: const Icon(Icons.edit),
-              );
-            },
+          IconButton(
+            onPressed: () => Navigator.pushNamed(
+              context,
+              AppRoutes.tambahKebun,
+              arguments: areaTerbaru,
+            ),
+            icon: const Icon(Icons.edit),
           ),
-
-          Consumer<AreaProvider>(
-            builder: (context, areaProv, child) {
-              final areaTerbaru = areaProv.areas.firstWhere(
-                (a) => a.idArea == initialArea!.idArea,
-                orElse: () => initialArea!,
-              );
-              return IconButton(
-                onPressed: () => _handleDeleteArea(areaTerbaru),
-                icon: const Icon(Icons.delete, color: AppColor.redStatus),
-              );
-            },
+          IconButton(
+            onPressed: () => _handleDeleteArea(areaTerbaru),
+            icon: const Icon(Icons.delete, color: AppColor.redStatus),
           ),
         ],
       ),
-
       body: Consumer<TandonProvider>(
         builder: (context, tandonProv, child) {
           if (tandonProv.isLoading) {
@@ -163,9 +147,9 @@ class _TandonPageState extends State<TandonPage> {
           }
 
           if (tandonProv.listTandon.isEmpty) {
-            return Column(
+            return const Column(
               children: [
-                const WNullKebuntandon(
+                WNullKebuntandon(
                   keterangan: "Tandon Kosong",
                   deskripsi:
                       "Belum ada tandon di kebun ini. Tambahkan tandon untuk mulai memantau.",
@@ -176,7 +160,7 @@ class _TandonPageState extends State<TandonPage> {
           }
 
           return RefreshIndicator(
-            onRefresh: () => tandonProv.getTandonByArea(initialArea!.idArea),
+            onRefresh: () => tandonProv.getTandonByArea(areaTerbaru.idArea),
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
               itemCount: tandonProv.listTandon.length,
@@ -189,12 +173,13 @@ class _TandonPageState extends State<TandonPage> {
                       AppRoutes.detailTandon,
                       arguments: {
                         "tandon": tandon,
-                        "namaArea": initialArea!.nama,
+                        "namaArea": areaTerbaru
+                            .nama, // FIXED: Mengirim nama kebun ter-update
                       },
                     );
                   },
                   child: WTandonCard(
-                    namaKebun: initialArea!.nama,
+                    namaKebun: areaTerbaru.nama, // FIXED: Reaktif sinkron
                     tandon: tandon,
                   ),
                 );
@@ -208,7 +193,7 @@ class _TandonPageState extends State<TandonPage> {
           Navigator.pushNamed(
             context,
             AppRoutes.tandonCreate,
-            arguments: initialArea!.idArea,
+            arguments: areaTerbaru.idArea,
           );
         },
         style: ButtonStyle(

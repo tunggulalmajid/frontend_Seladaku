@@ -15,16 +15,45 @@ class WTandonCard extends StatelessWidget {
     // 1. Cek apakah ada device terhubung
     bool hasDevice = tandon.deviceId != null && tandon.deviceId!.isNotEmpty;
 
+    // --- LOGIKA BARU: DETEKSI KONDISI SIAGA MODE HUJAN 🌧️ ---
+    // Pastikan properti model tandon kamu sudah memetakan 'isHujan' (bool/int) dari backend
+    bool kondisiHujan = tandon.isHujan == true || tandon.isHujan == 1;
+    bool isModeHujan = hasDevice && tandon.modeOtomatis && kondisiHujan;
+    // -------------------------------------------------------
+
     // 2. Logika Warna Tombol Power (CircleAvatar)
     Color statusButtonColor;
     if (!hasDevice) {
-      statusButtonColor =
-          AppColor.text; // Abu-abu/Standar jika tidak ada device
+      statusButtonColor = AppColor.text; // Abu-abu jika tidak ada device
     } else {
-      // Hijau jika status sensor ON, Merah jika OFF
-      statusButtonColor = (tandon.statusPompa == "ON")
-          ? AppColor.greenStatus
-          : AppColor.redStatus;
+      final selisih = DateTime.now().difference(tandon.lastSeen!);
+
+      // Jika device mati (> 5 menit) -> Merah, jika Mode Hujan aktif -> Biru, jika normal aktif -> Hijau
+      if (selisih.inMinutes > 5) {
+        statusButtonColor = AppColor.redStatus;
+      } else if (isModeHujan) {
+        statusButtonColor =
+            Colors.blue; // FIXED: Berubah biru saat siaga otomatisasi hujan
+      } else {
+        statusButtonColor = AppColor.greenStatus;
+      }
+    }
+
+    // 3. Logika Teks & Warna Badge Kontainer Mode
+    String teksMode = "Device tidak terhubung";
+    Color warnaTemaBadge = AppColor.text;
+    IconData ikonBadge = Icons.link_off;
+
+    if (hasDevice) {
+      if (isModeHujan) {
+        teksMode = "Mode Hujan";
+        warnaTemaBadge = Colors.blue; // FIXED: Tema badge ikut berubah biru
+        ikonBadge = Icons.cloudy_snowing; // Ikon cuaca hujan reaktif
+      } else {
+        teksMode = tandon.modeOtomatis ? "Mode Otomatis" : "Mode Manual";
+        warnaTemaBadge = AppColor.primary;
+        ikonBadge = Icons.wb_sunny_outlined;
+      }
     }
 
     return Container(
@@ -36,9 +65,11 @@ class WTandonCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 5,
-            offset: const Offset(2, 5),
+            color: Colors.black.withValues(
+              alpha: 0.1,
+            ), // Dikurangi ke 0.1 agar tidak terlalu pekat mengotori card figma
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -76,17 +107,17 @@ class WTandonCard extends StatelessWidget {
 
           const SizedBox(height: 5),
 
-          // Label Mode / Koneksi Device
+          // Label Mode / Koneksi Device Reaktif
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               color: hasDevice
-                  ? AppColor.primary.withValues(alpha: 0.1)
+                  ? warnaTemaBadge.withValues(alpha: 0.1)
                   : Colors.transparent,
               border: Border.all(
                 color: hasDevice
-                    ? AppColor.primary.withValues(alpha: 0.5)
+                    ? warnaTemaBadge.withValues(alpha: 0.5)
                     : AppColor.text,
                 width: 1,
               ),
@@ -94,18 +125,12 @@ class WTandonCard extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  hasDevice ? Icons.wb_sunny_outlined : Icons.link_off,
-                  color: hasDevice ? AppColor.primary : AppColor.text,
-                  size: 16,
-                ),
+                Icon(ikonBadge, color: warnaTemaBadge, size: 16),
                 const SizedBox(width: 6),
                 Text(
-                  hasDevice
-                      ? (tandon.modeOtomatis ? "Mode Otomatis" : "Mode Manual")
-                      : "Device tidak terhubung",
+                  teksMode,
                   style: GoogleFonts.poppins(
-                    color: hasDevice ? AppColor.primary : AppColor.text,
+                    color: warnaTemaBadge,
                     fontWeight: FontWeight.w500,
                     fontSize: 12,
                   ),
@@ -116,20 +141,18 @@ class WTandonCard extends StatelessWidget {
 
           const SizedBox(height: 15),
 
-          // Indikator Sensor
+          // Indikator Nilai Sensor
           Row(
             children: [
               _buildIndicator(
                 Icons.science_outlined,
                 "pH",
-                // Gunakan toStringAsFixed(2) untuk membatasi koma
                 tandon.ph?.toStringAsFixed(2) ?? "0.00",
               ),
               const SizedBox(width: 10),
               _buildIndicator(
                 Icons.speed_outlined,
                 "PPM",
-                // PPM biasanya bulat, toStringAsFixed(0) atau (1) sudah cukup
                 tandon.ppm?.toStringAsFixed(0) ?? "0",
               ),
               const SizedBox(width: 10),

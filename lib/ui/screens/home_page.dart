@@ -24,8 +24,11 @@ class _HomePageState extends State<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Berjalan otomatis saat pertama kali dibuka DAN setiap kali user kembali dari halaman lain
-    context.read<AreaProvider>().fetchDashboardData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AreaProvider>().fetchDashboardData();
+      }
+    });
   }
 
   @override
