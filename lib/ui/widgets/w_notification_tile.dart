@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_seladaku/ui/widgets/w_text.dart';
-import 'package:frontend_seladaku/utils/app_colors.dart';
+import 'package:seladaku/ui/widgets/w_text.dart';
+import 'package:seladaku/utils/app_colors.dart';
 
 class WNotificationTile extends StatelessWidget {
   final bool switchValue;
@@ -22,9 +22,7 @@ class WNotificationTile extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(
-          20,
-        ), // Melengkung halus sesuai gambar
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.3),
@@ -35,7 +33,6 @@ class WNotificationTile extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Row Atas: Label & Switch Notifikasi
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -63,15 +60,13 @@ class WNotificationTile extends StatelessWidget {
           ),
           const SizedBox(height: 15),
 
-          // Tombol Bawah: Atur Parameter dan Peringatan
           SizedBox(
             width: double.infinity,
             height: 48,
             child: ElevatedButton(
               onPressed: onPressed,
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    AppColor.primary, // Warna hijau toska tema Seladaku
+                backgroundColor: AppColor.primary,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

@@ -9,4 +9,8 @@ class AppRoutes {
   static const String tandonCreate = '/tandon/create';
   static const String detailTandon = '/tandon/show';
   static const String createIot = '/tandon/iot';
+  static const String detailCuaca = '/detail-cuaca';
+  static const String notification = '/notification';
+  static const String aturParameter = '/atur-Parameter';
 }
+

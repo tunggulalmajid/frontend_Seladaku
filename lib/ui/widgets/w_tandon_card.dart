@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_seladaku/models/tandon_model.dart';
-import 'package:frontend_seladaku/ui/widgets/w_text.dart';
+import 'package:seladaku/models/tandon_model.dart';
+import 'package:seladaku/ui/widgets/w_text.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:frontend_seladaku/utils/app_colors.dart';
+import 'package:seladaku/utils/app_colors.dart';
 
 class WTandonCard extends StatelessWidget {
   final TandonModel tandon;
@@ -12,34 +12,34 @@ class WTandonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Cek apakah ada device terhubung
+    
     bool hasDevice = tandon.deviceId != null && tandon.deviceId!.isNotEmpty;
 
-    // --- LOGIKA BARU: DETEKSI KONDISI SIAGA MODE HUJAN 🌧️ ---
-    // Pastikan properti model tandon kamu sudah memetakan 'isHujan' (bool/int) dari backend
+    
+    
     bool kondisiHujan = tandon.isHujan == true || tandon.isHujan == 1;
     bool isModeHujan = hasDevice && tandon.modeOtomatis && kondisiHujan;
-    // -------------------------------------------------------
+    
 
-    // 2. Logika Warna Tombol Power (CircleAvatar)
+    
     Color statusButtonColor;
     if (!hasDevice) {
-      statusButtonColor = AppColor.text; // Abu-abu jika tidak ada device
+      statusButtonColor = AppColor.text; 
     } else {
       final selisih = DateTime.now().difference(tandon.lastSeen!);
 
-      // Jika device mati (> 5 menit) -> Merah, jika Mode Hujan aktif -> Biru, jika normal aktif -> Hijau
+      
       if (selisih.inMinutes > 5) {
         statusButtonColor = AppColor.redStatus;
       } else if (isModeHujan) {
         statusButtonColor =
-            Colors.blue; // FIXED: Berubah biru saat siaga otomatisasi hujan
+            Colors.blue; 
       } else {
         statusButtonColor = AppColor.greenStatus;
       }
     }
 
-    // 3. Logika Teks & Warna Badge Kontainer Mode
+    
     String teksMode = "Device tidak terhubung";
     Color warnaTemaBadge = AppColor.text;
     IconData ikonBadge = Icons.link_off;
@@ -47,8 +47,8 @@ class WTandonCard extends StatelessWidget {
     if (hasDevice) {
       if (isModeHujan) {
         teksMode = "Mode Hujan";
-        warnaTemaBadge = Colors.blue; // FIXED: Tema badge ikut berubah biru
-        ikonBadge = Icons.cloudy_snowing; // Ikon cuaca hujan reaktif
+        warnaTemaBadge = Colors.blue; 
+        ikonBadge = Icons.cloudy_snowing; 
       } else {
         teksMode = tandon.modeOtomatis ? "Mode Otomatis" : "Mode Manual";
         warnaTemaBadge = AppColor.primary;
@@ -67,7 +67,7 @@ class WTandonCard extends StatelessWidget {
           BoxShadow(
             color: Colors.black.withValues(
               alpha: 0.1,
-            ), // Dikurangi ke 0.1 agar tidak terlalu pekat mengotori card figma
+            ), 
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -107,7 +107,7 @@ class WTandonCard extends StatelessWidget {
 
           const SizedBox(height: 5),
 
-          // Label Mode / Koneksi Device Reaktif
+          
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
@@ -141,7 +141,7 @@ class WTandonCard extends StatelessWidget {
 
           const SizedBox(height: 15),
 
-          // Indikator Nilai Sensor
+          
           Row(
             children: [
               _buildIndicator(

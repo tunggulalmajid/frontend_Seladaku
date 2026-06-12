@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_seladaku/ui/screens/home_page.dart';
-import 'package:frontend_seladaku/ui/screens/kebun/kebun_page.dart';
-import 'package:frontend_seladaku/ui/screens/profile/profil_page.dart';
-import 'package:frontend_seladaku/utils/app_colors.dart';
+import 'package:seladaku/ui/screens/home_page.dart';
+import 'package:seladaku/ui/screens/kebun/kebun_page.dart';
+import 'package:seladaku/ui/screens/profile/profil_page.dart';
+import 'package:seladaku/utils/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
-// import 'package:google_fonts/google_fonts.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -16,7 +15,6 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
 
-  // 2. Daftar halaman yang akan ditampilkan (pastikan jumlahnya sama dengan item navbar)
   final List<Widget> _pages = [
     const HomePage(),
     const KebunPage(),
@@ -29,7 +27,7 @@ class _MainPageState extends State<MainPage> {
 
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.white,
-        elevation: 8, // Memberikan sedikit bayangan di atas navbar
+        elevation: 8,
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
@@ -38,12 +36,10 @@ class _MainPageState extends State<MainPage> {
         },
         type: BottomNavigationBarType.fixed,
 
-        // Warna saat dipilih (Hijau sesuai AppColor)
         selectedItemColor: AppColor.primary,
-        // Warna saat tidak dipilih (Abu-abu)
+
         unselectedItemColor: Colors.grey,
 
-        // Styling teks label agar mirip di gambar
         selectedLabelStyle: GoogleFonts.poppins(
           fontWeight: FontWeight.w600,
           fontSize: 12,
@@ -53,7 +49,6 @@ class _MainPageState extends State<MainPage> {
           fontSize: 12,
         ),
 
-        // Menampilkan label di semua kondisi
         showSelectedLabels: true,
         showUnselectedLabels: true,
 

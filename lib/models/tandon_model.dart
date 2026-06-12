@@ -6,6 +6,7 @@ class TandonModel {
   final String? deviceId;
   final bool modeOtomatis;
   final bool isNotifAktif;
+  final String? fcmToken; 
   final String statusS1;
   final String statusS2;
   final String statusPompa;
@@ -14,6 +15,8 @@ class TandonModel {
   final double minPpm;
   final double maxPpm;
   final double minVolume;
+  final double tinggiTandon;
+  final double jarakAman;
   final DateTime? lastSeen;
   final double? ph;
   final double? ppm;
@@ -27,6 +30,7 @@ class TandonModel {
     this.deviceId,
     required this.modeOtomatis,
     required this.isNotifAktif,
+    this.fcmToken, 
     required this.statusS1,
     required this.statusS2,
     required this.statusPompa,
@@ -35,6 +39,8 @@ class TandonModel {
     required this.minPpm,
     required this.maxPpm,
     required this.minVolume,
+    required this.tinggiTandon,
+    required this.jarakAman,
     this.lastSeen,
     this.ph,
     this.ppm,
@@ -51,6 +57,7 @@ class TandonModel {
     String? deviceId,
     bool? modeOtomatis,
     bool? isNotifAktif,
+    String? fcmToken, 
     String? statusS1,
     String? statusS2,
     String? statusPompa,
@@ -59,6 +66,8 @@ class TandonModel {
     double? minPpm,
     double? maxPpm,
     double? minVolume,
+    double? tinggiTandon,
+    double? jarakAman,
     DateTime? lastSeen,
     double? ph,
     double? ppm,
@@ -73,6 +82,7 @@ class TandonModel {
       deviceId: deviceId ?? this.deviceId,
       modeOtomatis: modeOtomatis ?? this.modeOtomatis,
       isNotifAktif: isNotifAktif ?? this.isNotifAktif,
+      fcmToken: fcmToken ?? this.fcmToken, 
       statusS1: statusS1 ?? this.statusS1,
       statusS2: statusS2 ?? this.statusS2,
       statusPompa: statusPompa ?? this.statusPompa,
@@ -81,6 +91,8 @@ class TandonModel {
       minPpm: minPpm ?? this.minPpm,
       maxPpm: maxPpm ?? this.maxPpm,
       minVolume: minVolume ?? this.minVolume,
+      tinggiTandon: tinggiTandon ?? this.tinggiTandon,
+      jarakAman: jarakAman ?? this.jarakAman,
       lastSeen: lastSeen ?? this.lastSeen,
       ph: ph ?? this.ph,
       ppm: ppm ?? this.ppm,
@@ -90,7 +102,6 @@ class TandonModel {
   }
 
   factory TandonModel.fromJson(Map<String, dynamic> json) {
-    // Fungsi bantuan sakti agar int/double tidak error
     double toDouble(dynamic value) {
       if (value == null) return 0.0;
       if (value is int) return value.toDouble();
@@ -103,24 +114,24 @@ class TandonModel {
     return TandonModel(
       idTandon: json['id_tandon'],
       namaTandon: json['nama_tandon'] ?? '',
-      // Gunakan TryParse untuk tanggal agar lebih aman
       tanggalTanam: json['tanggal_tanam'] != null
-          ? DateTime.parse(json['tanggal_tanam'].toString())
-                .toLocal() // Tambahkan .toLocal()
+          ? DateTime.parse(json['tanggal_tanam'].toString()).toLocal()
           : DateTime.now(),
       idArea: json['id_area'],
       deviceId: json['device_id'],
       modeOtomatis: toBool(json['mode_otomatis']),
       isNotifAktif: toBool(json['is_notif_aktif']),
+      fcmToken: json['fcm_token'], 
       statusS1: json['status_s1'] ?? 'OFF',
       statusS2: json['status_s2'] ?? 'OFF',
       statusPompa: json['status_pompa'] ?? 'OFF',
-      // Gunakan toDouble untuk semua parameter ini
       minPh: toDouble(json['min_ph']),
       maxPh: toDouble(json['max_ph']),
-      minPpm: toDouble(json['min_ppm']), // JSON kirim int 450
-      maxPpm: toDouble(json['max_ppm']), // JSON kirim int 850
+      minPpm: toDouble(json['min_ppm']),
+      maxPpm: toDouble(json['max_ppm']),
       minVolume: toDouble(json['min_volume']),
+      tinggiTandon: toDouble(json['tinggi_tandon']),
+      jarakAman: toDouble(json['jarak_aman']),
       lastSeen: json['last_seen'] != null
           ? DateTime.parse(json['last_seen'])
           : null,

@@ -24,14 +24,13 @@ class WSuccessDialog extends StatelessWidget {
           borderRadius: BorderRadius.circular(25),
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min, // Sesuai konten
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Icon Berhasil (Circle dengan Check)
             Container(
               height: 80,
               width: 80,
               decoration: BoxDecoration(
-                color: Colors.green.shade50, // Latar belakang lingkaran tipis
+                color: Colors.green.shade50,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -56,12 +55,12 @@ class WSuccessDialog extends StatelessWidget {
               style: const TextStyle(fontSize: 14, color: Colors.black54),
             ),
             const SizedBox(height: 24),
-            // Tombol OK
+
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade500, // Warna tombol
+                  backgroundColor: Colors.green.shade500,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

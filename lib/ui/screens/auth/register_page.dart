@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_seladaku/dto/register_request.dart';
-import 'package:frontend_seladaku/providers/auth_provider.dart';
+import 'package:seladaku/dto/register_request.dart';
+import 'package:seladaku/providers/auth_provider.dart';
 
-import 'package:frontend_seladaku/ui/widgets/w_button.dart';
-import 'package:frontend_seladaku/ui/widgets/w_success_dialog.dart';
-import 'package:frontend_seladaku/ui/widgets/w_text_field.dart';
-import 'package:frontend_seladaku/utils/app_colors.dart';
-import 'package:frontend_seladaku/utils/app_routes.dart';
+import 'package:seladaku/ui/widgets/w_button.dart';
+import 'package:seladaku/ui/widgets/w_success_dialog.dart';
+import 'package:seladaku/ui/widgets/w_text_field.dart';
+import 'package:seladaku/utils/app_colors.dart';
+import 'package:seladaku/utils/app_routes.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -126,14 +126,12 @@ class _RegisterPageState extends State<RegisterPage> {
                         ? () {}
                         : () async {
                             if (_formKey.currentState!.validate()) {
-                              // Buat objek request-nya
                               final request = RegisterRequest(
                                 nama: _namaController.text,
                                 email: _emailController.text,
                                 password: _passwordController.text,
                               );
 
-                              // Kirim ke provider
                               bool success = await auth.register(request);
 
                               if (!context.mounted) return;

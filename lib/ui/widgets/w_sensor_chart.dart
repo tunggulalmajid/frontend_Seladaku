@@ -1,6 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend_seladaku/models/riwayat_grafik_model.dart';
+import 'package:seladaku/models/riwayat_grafik_model.dart';
 
 class WSensorChart extends StatelessWidget {
   final List<RiwayatGrafikModel> data;
@@ -66,9 +66,9 @@ class WSensorChart extends StatelessWidget {
         minY: minY,
         maxY: maxY,
 
-        // =======================================================================
-        // 1. FITUR SENTUH INTERAKTIF (TOUCH TOOLTIP KETIKA DIPENCET) 🎯
-        // =======================================================================
+        
+        
+        
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
             getTooltipColor: (touchedSpot) =>
@@ -79,7 +79,7 @@ class WSensorChart extends StatelessWidget {
               return touchedSpots.map((barSpot) {
                 final index = barSpot.x.toInt();
                 if (index >= 0 && index < data.length) {
-                  // Mengambil jam/tanggal asli dari model data backend kamu
+                  
                   String waktuAsli = data[index].xLabel;
                   String nilaiSensor = barSpot.y.toStringAsFixed(
                     jenisSensor == "ph" ? 2 : 0,
@@ -113,7 +113,7 @@ class WSensorChart extends StatelessWidget {
               }).toList();
             },
           ),
-          handleBuiltInTouches: true, // Otomatis mengurus klik gesture di HP
+          handleBuiltInTouches: true, 
         ),
 
         gridData: FlGridData(
@@ -160,29 +160,29 @@ class WSensorChart extends StatelessWidget {
             ),
           ),
 
-          // =======================================================================
-          // 2. SUMBU X KEMBALI NORMAL & RENGGANG (Mencegah Grafik Hilang) 📉
-          // =======================================================================
+          
+          
+          
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 25,
-              // Kembalikan interval murni ke 1 agar fl_chart menggambar titik koordinat secara utuh
+              
               interval: 1,
               getTitlesWidget: (value, meta) {
                 int index = value.toInt();
                 if (value != index.toDouble()) return const SizedBox.shrink();
 
                 if (index >= 0 && index < data.length) {
-                  // LOGIKA SKIP LABEL: Hanya cetak teks label jika di titik awal, tengah, atau akhir saja
-                  // Ini membuat sumbu X bersih dari tabrakan, tapi garis Y di atasnya TETAP UTUH terlihat!
+                  
+                  
                   int totalData = data.length;
                   bool cetakLabel = false;
 
                   if (totalData <= 4) {
-                    cetakLabel = true; // Kalau data sedikit, cetak semua
+                    cetakLabel = true; 
                   } else {
-                    // Kalau data banyak, hanya cetak di index awal, kuartal tengah, dan ujung akhir saja
+                    
                     int lompatan = (totalData / 3).floor();
                     if (index == 0 ||
                         index == totalData - 1 ||
@@ -219,15 +219,15 @@ class WSensorChart extends StatelessWidget {
             barWidth: 3,
             isStrokeCapRound: true,
             dotData: FlDotData(
-              show: true, // Ubah dari false ke true
+              show: true, 
               getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
                 radius:
-                    3, // Ukuran lingkaran dalam (jangan terlalu besar biar gak numpuk)
+                    3, 
                 color:
-                    warnaGrafik, // Warna bulatan disamakan dengan warna sensornya
-                strokeWidth: 1.5, // Ketebalan border pinggiran
+                    warnaGrafik, 
+                strokeWidth: 1.5, 
                 strokeColor:
-                    Colors.white, // Pinggiran warna putih biar kontras dan rapi
+                    Colors.white, 
               ),
             ),
             belowBarData: BarAreaData(

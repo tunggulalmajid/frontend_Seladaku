@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "620249080867",
+    "project_id": "ppl-seladaku",
+    "storage_bucket": "ppl-seladaku.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:620249080867:android:721ab913112d8674253d96",
+        "android_client_info": {
+          "package_name": "com.example.frontend_seladaku"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwoP7tFwpmZYDTIznF2Bw-SCBKmY1vL-s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

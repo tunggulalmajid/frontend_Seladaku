@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_seladaku/ui/widgets/w_confirmation_delete_dialog.dart';
-import 'package:frontend_seladaku/ui/widgets/w_header.dart';
-import 'package:frontend_seladaku/ui/widgets/w_text.dart';
+import 'package:seladaku/ui/widgets/w_confirmation_delete_dialog.dart';
+import 'package:seladaku/ui/widgets/w_header.dart';
+import 'package:seladaku/ui/widgets/w_text.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../providers/auth_provider.dart';
@@ -16,7 +16,6 @@ class ProfilPage extends StatelessWidget {
     final auth = context.watch<AuthProvider>();
     final user = auth.user;
 
-    // Logika mengambil inisial nama depan
     String inisial = user?.nama != null && user!.nama.isNotEmpty
         ? user.nama[0].toUpperCase()
         : "?";
@@ -33,7 +32,6 @@ class ProfilPage extends StatelessWidget {
           ),
           const SizedBox(height: 25),
 
-          // Bagian Foto Profil / Inisial
           Center(
             child: Container(
               padding: const EdgeInsets.all(4),
@@ -43,11 +41,9 @@ class ProfilPage extends StatelessWidget {
               ),
               child: CircleAvatar(
                 radius: 80,
-                // Background hijau jika tidak ada foto (menggunakan warna primary aplikasi)
+
                 backgroundColor: Colors.green[50],
-                child:
-                    user?.foto !=
-                        null // Asumsi jika nanti ada field fotoUrl
+                child: user?.foto != null
                     ? ClipOval(
                         child: Image.network(
                           user!.foto!,
@@ -65,7 +61,6 @@ class ProfilPage extends StatelessWidget {
 
           const SizedBox(height: 25),
 
-          // Container Data Diri
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -101,7 +96,6 @@ class ProfilPage extends StatelessWidget {
 
           const SizedBox(height: 30),
 
-          // Menu Edit & Logout
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -156,13 +150,12 @@ class ProfilPage extends StatelessWidget {
     );
   }
 
-  // Widget Helper untuk menampilkan Inisial Nama
   Widget _buildInitial(String char) {
     return WText(
       isi: char,
       ukuranFont: 60,
       fw: FontWeight.bold,
-      color: AppColor.primary, // Huruf berwarna hijau tua (Primary)
+      color: AppColor.primary,
     );
   }
 
@@ -170,12 +163,10 @@ class ProfilPage extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
-        crossAxisAlignment:
-            CrossAxisAlignment.start, // Agar sejajar atas jika teks panjang
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Label (Email, Alamat, dll)
           SizedBox(
-            width: 90, // Beri lebar tetap agar titik dua sejajar vertikal
+            width: 90,
             child: WText(
               isi: label,
               color: Colors.grey,
@@ -184,12 +175,9 @@ class ProfilPage extends StatelessWidget {
             ),
           ),
 
-          // Titik dua
           WText(isi: ": ", fw: FontWeight.w600, ukuranFont: 14),
 
-          // Value (Isi datanya)
           Expanded(
-            // PENTING: Agar teks panjang tidak menyebabkan error overflow
             child: Text(
               value,
               textAlign: TextAlign.start,
@@ -198,7 +186,6 @@ class ProfilPage extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
                 color: Colors.black,
-                // Sesuaikan font family jika kamu pakai GoogleFonts di WText
               ),
             ),
           ),

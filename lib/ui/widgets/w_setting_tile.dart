@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_seladaku/ui/widgets/w_text.dart';
-import 'package:frontend_seladaku/utils/app_colors.dart';
+import 'package:seladaku/ui/widgets/w_text.dart';
+import 'package:seladaku/utils/app_colors.dart';
 
 class WSettingTile extends StatelessWidget {
   final String title;
-  final bool isAuto; // Nilai Otomatisasi
+  final bool isAuto;
   final ValueChanged<bool> onAutoChanged;
 
-  // Status Aktuator
   final bool s1Value;
   final bool s2Value;
   final bool pompaValue;
 
-  // Callback untuk kontrol manual
   final Function(String target, bool value) onManualControl;
 
   const WSettingTile({
@@ -46,7 +44,6 @@ class WSettingTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Row Utama: Otomatisasi
           _buildSwitchRow(
             label: title,
             value: isAuto,
@@ -55,7 +52,6 @@ class WSettingTile extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // Daftar Aktuator Manual (Read-only jika isAuto == true)
           _buildSwitchRow(
             label: "Solenoid Tandon",
             value: s1Value,

@@ -12,12 +12,12 @@ class TandonProvider with ChangeNotifier {
   List<TandonModel> get listTandon => _listTandon;
   bool get isLoading => _isLoading;
 
-  // Disuntikkan di main.dart melalui ChangeNotifierProxyProvider
+  
   void updateService(TandonService service) {
     _tandonService = service;
   }
 
-  // 1. Fetch Tandon berdasarkan Area
+  
   Future<void> getTandonByArea(int idArea) async {
     _isLoading = true;
     notifyListeners();
@@ -33,7 +33,7 @@ class TandonProvider with ChangeNotifier {
     }
   }
 
-  // 2. Create Tandon Baru
+  
   Future<bool> createTandon({
     required int idArea,
     required String nama,
@@ -57,8 +57,8 @@ class TandonProvider with ChangeNotifier {
     }
   }
 
-  // 3. Update Modular (PATCH)
-  // Digunakan untuk: Ganti nama, toggle pompa (ON/OFF), ganti parameter pH/PPM, dll.
+  
+  
   Future<bool> updateTandon(
     int idTandon,
     Map<String, dynamic> dataPerubahan,
@@ -68,10 +68,10 @@ class TandonProvider with ChangeNotifier {
     log(success.toString());
 
     if (success) {
-      // Cari tandon yang diupdate di list local untuk mendapatkan idArea-nya
+      
       final index = _listTandon.indexWhere((t) => t.idTandon == idTandon);
       if (index != -1) {
-        // Refresh data dari server agar data sensor (pH, PPM, dll) ikut terupdate
+        
         await getTandonByArea(_listTandon[index].idArea);
       }
     }
@@ -80,9 +80,8 @@ class TandonProvider with ChangeNotifier {
 
   void updateTandonFromSocket(int idTandon, Map<String, dynamic> newData) {
     final index = _listTandon.indexWhere((t) => t.idTandon == idTandon);
-
     if (index != -1) {
-      // WAJIB: Gunakan copyWith agar referensi objek berubah
+      
       _listTandon[index] = _listTandon[index].copyWith(
         ph: newData['ph']?.toDouble(),
         ppm: newData['ppm']?.toDouble(),
@@ -98,7 +97,7 @@ class TandonProvider with ChangeNotifier {
         lastSeen: DateTime.now(),
       );
 
-      notifyListeners(); // Memicu re-build pada Consumer
+      notifyListeners(); 
       log("Provider: Data updated for Tandon $idTandon");
     }
   }
@@ -109,7 +108,7 @@ class TandonProvider with ChangeNotifier {
     try {
       bool success = await _tandonService.pairDevice(idTandon, deviceId);
       if (success) {
-        // Cari tandon di list lokal dan update field deviceId secara reaktif
+        
         final index = _listTandon.indexWhere((t) => t.idTandon == idTandon);
         if (index != -1) {
           _listTandon[index] = _listTandon[index].copyWith(deviceId: deviceId);
@@ -125,7 +124,7 @@ class TandonProvider with ChangeNotifier {
     }
   }
 
-  // 4. Delete Tandon
+  
   Future<bool> removeTandon(int idTandon) async {
     bool success = await _tandonService.deleteTandon(idTandon);
     if (success) {
@@ -133,5 +132,77 @@ class TandonProvider with ChangeNotifier {
       notifyListeners();
     }
     return success;
+  }
+
+  
+  Future<bool> simpanFcmTokenKeBackend(String token, int idTandon) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      
+      bool tokenSuccess = await _tandonService.registerFcmToken(
+        idTandon,
+        token,
+      );
+
+      if (tokenSuccess) {
+        
+        await _tandonService.updateTandon(idTandon, {
+          'is_notif_aktif':
+              1, 
+        });
+
+        
+        final index = _listTandon.indexWhere((t) => t.idTandon == idTandon);
+        if (index != -1) {
+          _listTandon[index] = _listTandon[index].copyWith(
+            isNotifAktif: true,
+            fcmToken: token,
+          );
+        }
+        return true;
+      }
+      return false;
+    } catch (e) {
+      log("Error simpanFcmTokenKeBackend Provider: $e");
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  
+  Future<bool> hapusFcmTokenDariBackend(int idTandon) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      
+      bool tokenSuccess = await _tandonService.unregisterFcmToken(idTandon);
+
+      if (tokenSuccess) {
+        
+        await _tandonService.updateTandon(idTandon, {
+          'is_notif_aktif': 0, 
+        });
+
+        
+        final index = _listTandon.indexWhere((t) => t.idTandon == idTandon);
+        if (index != -1) {
+          _listTandon[index] = _listTandon[index].copyWith(
+            isNotifAktif: false,
+            fcmToken: null,
+          );
+        }
+        return true;
+      }
+      return false;
+    } catch (e) {
+      log("Error hapusFcmTokenDariBackend Provider: $e");
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

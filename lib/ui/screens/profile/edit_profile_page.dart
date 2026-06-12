@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:frontend_seladaku/ui/widgets/w_failed_dialog.dart';
+import 'package:seladaku/ui/widgets/w_failed_dialog.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +22,7 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  final _formKey = GlobalKey<FormState>(); // Kunci untuk validasi
+  final _formKey = GlobalKey<FormState>(); 
   final TextEditingController namaController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController nomorTeleponController = TextEditingController();
@@ -53,7 +53,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     log("$lat, $lon");
   }
 
-  // Fungsi ambil foto
+  
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(
       source: ImageSource.gallery,
@@ -62,13 +62,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (image != null) setState(() => _imageFile = File(image.path));
   }
 
-  // Fungsi ambil lokasi dari peta
+  
   Future<void> _handleLocationPick() async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => MapPickerPage(
-          // Kirim lokasi yang saat ini tersimpan di state EditProfile
+          
           initialLocation: (lat != null && lon != null)
               ? LatLng(lat!, lon!)
               : null,
@@ -94,15 +94,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
         centerTitle: true,
       ),
       body: Form(
-        key: _formKey, // Pasang form key di sini
+        key: _formKey, 
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            // PROFILE PICTURE SECTION
+            
             _buildAvatar(authProvider),
             const SizedBox(height: 30),
 
-            // FORM FIELDS
+            
             _label("Nama Lengkap"),
             WTextField(
               hintText: "Masukkan Nama",
@@ -169,7 +169,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
             const SizedBox(height: 40),
 
-            // ACTION BUTTON
+            
             WButton(
               text: authProvider.isLoading
                   ? "Sedang Menyimpan..."
@@ -240,7 +240,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           CircleAvatar(
             radius: 60,
             backgroundColor: Colors.green[50],
-            // Urutan Prioritas: 1. File baru, 2. Foto dari Server, 3. Kosong (null)
+            
             backgroundImage: _imageFile != null
                 ? FileImage(_imageFile!)
                 : (user?.foto != null ? NetworkImage("${user!.foto}") : null),
@@ -274,7 +274,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       isi: char,
       ukuranFont: 60,
       fw: FontWeight.bold,
-      color: AppColor.primary, // Huruf berwarna hijau tua (Primary)
+      color: AppColor.primary, 
     );
   }
 

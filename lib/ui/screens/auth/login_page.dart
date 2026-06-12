@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_seladaku/ui/widgets/w_button.dart';
-import 'package:frontend_seladaku/ui/widgets/w_failed_dialog.dart';
-import 'package:frontend_seladaku/ui/widgets/w_success_dialog.dart';
-import 'package:frontend_seladaku/ui/widgets/w_text.dart';
-import 'package:frontend_seladaku/ui/widgets/w_text_field.dart';
+import 'package:seladaku/ui/widgets/w_button.dart';
+import 'package:seladaku/ui/widgets/w_failed_dialog.dart';
+import 'package:seladaku/ui/widgets/w_success_dialog.dart';
+import 'package:seladaku/ui/widgets/w_text.dart';
+import 'package:seladaku/ui/widgets/w_text_field.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../dto/login_request.dart';
 import '../../../../utils/app_colors.dart';
 import '../../../../utils/app_routes.dart';
-// import '../../widgets/w_button.dart';
-// import '../../widgets/w_text_field.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -21,7 +19,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // 1. KUNCI UNTUK VALIDASI FORM
   final _formKey = GlobalKey<FormState>();
 
   final _emailController = TextEditingController();
@@ -36,7 +33,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Memantau status loading dari AuthProvider
     final auth = context.watch<AuthProvider>();
 
     return Scaffold(
@@ -45,7 +41,6 @@ class _LoginPageState extends State<LoginPage> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Form(
-            // 2. PASANG KUNCI FORM DI SINI
             key: _formKey,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -69,7 +64,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 50),
 
-                // INPUT EMAIL DENGAN VALIDASI
                 WTextField(
                   hintText: "Email",
                   controller: _emailController,
@@ -86,7 +80,6 @@ class _LoginPageState extends State<LoginPage> {
 
                 const SizedBox(height: 20),
 
-                // INPUT PASSWORD DENGAN VALIDASI
                 WTextField(
                   hintText: "Password",
                   controller: _passwordController,
@@ -104,13 +97,11 @@ class _LoginPageState extends State<LoginPage> {
 
                 const SizedBox(height: 30),
 
-                // TOMBOL LOGIN
                 WButton(
                   text: auth.isLoading ? "Loading..." : "Sign In",
                   onPressed: auth.isLoading
                       ? () {}
                       : () async {
-                          // 3. CEK APAKAH SEMUA INPUT SUDAH BENAR
                           if (_formKey.currentState!.validate()) {
                             final request = LoginRequest(
                               email: _emailController.text,
@@ -168,7 +159,6 @@ class _LoginPageState extends State<LoginPage> {
 
                 const SizedBox(height: 20),
 
-                // NAVIGASI KE REGISTER
                 GestureDetector(
                   onTap: () => Navigator.pushNamed(context, AppRoutes.register),
                   child: Align(

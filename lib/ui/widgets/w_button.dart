@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:frontend_seladaku/utils/app_colors.dart';
+import 'package:seladaku/utils/app_colors.dart';
 
 class WButton extends StatelessWidget {
   final String text;
@@ -21,7 +21,7 @@ class WButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity, // Membuat button full width
+      width: double.infinity, 
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor ?? AppColor.primary,
@@ -30,7 +30,7 @@ class WButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
           elevation:
-              0, // Opsional: hilangkan bayangan agar terlihat flat/modern
+              0, 
         ),
         onPressed: onPressed,
         child: Text(

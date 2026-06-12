@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:frontend_seladaku/dto/edit_profile_dto.dart';
+import 'package:seladaku/dto/edit_profile_dto.dart';
 import '../dto/login_request.dart';
 import '../dto/register_request.dart';
 import '../models/user_model.dart';
@@ -10,7 +10,6 @@ import '../services/auth_service.dart';
 class AuthProvider extends ChangeNotifier {
   final _storage = const FlutterSecureStorage();
 
-  // Gunakan late agar bisa disuntikkan dari main.dart
   late AuthService _authService;
 
   UserModel? _user;
@@ -19,7 +18,6 @@ class AuthProvider extends ChangeNotifier {
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
 
-  // 1. Fungsi Injeksi Service (Penting!)
   void updateService(AuthService service) {
     _authService = service;
     log("AuthProvider: Service telah diperbarui dengan Interceptor!");
@@ -46,7 +44,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 3. Register (Ini yang tadi ketinggalan, Wak!)
   Future<bool> register(RegisterRequest data) async {
     _isLoading = true;
     notifyListeners();
@@ -62,14 +59,12 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 4. Login
   Future<bool> login(LoginRequest data) async {
     _isLoading = true;
     notifyListeners();
     try {
       final response = await _authService.login(data);
       if (response.data['success'] == true) {
-        // Simpan duo token
         await _storage.write(
           key: "accessToken",
           value: response.data['accessToken'],
@@ -79,7 +74,6 @@ class AuthProvider extends ChangeNotifier {
           value: response.data['refreshToken'],
         );
 
-        // Ambil data profil (otomatis pakai token baru via interceptor)
         final profile = await _authService.getMe();
         _user = UserModel.fromJson(profile.data['data']);
 
@@ -95,14 +89,13 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 5. Update Profile
   Future<bool> updateProfile(EditProfileDTO dto) async {
     _isLoading = true;
     notifyListeners();
     try {
       final response = await _authService.updateProfile(dto);
       if (response.statusCode == 200) {
-        await fetchUser(); // Sync data terbaru
+        await fetchUser();
         return true;
       }
       return false;
@@ -115,18 +108,15 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 6. Handle Refresh Token (Dipanggil oleh Interceptor)
   Future<bool> handleRefreshToken() async {
     try {
       String? refreshToken = await _storage.read(key: "refreshToken");
       log("Token : $refreshToken ");
       if (refreshToken == null) return false;
 
-      // Pastikan endpoint '/auth/refresh' sesuai dengan route di backend-mu
       final response = await _authService.refresh(refreshToken);
 
       if (response.data['success'] == true) {
-        // Simpan Access Token baru
         await _storage.write(
           key: "accessToken",
           value: response.data['accessToken'],
@@ -140,7 +130,6 @@ class AuthProvider extends ChangeNotifier {
     return false;
   }
 
-  // 7. Logout
   Future<void> logout() async {
     try {
       await _authService.logout();

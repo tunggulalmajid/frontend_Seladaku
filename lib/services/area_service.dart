@@ -1,15 +1,11 @@
-// import 'package:dio/dio.dart';
 import 'dart:developer';
 
-import 'package:frontend_seladaku/models/dashboard_area_model.dart';
+import 'package:seladaku/models/dashboard_area_model.dart';
 
 import '../models/area_model.dart';
 import 'api_service.dart';
 
 class AreaService extends ApiService {
-  // Fungsi vital agar request ke /area menyertakan token dari AuthProvider
-
-  // Ambil semua area (Halaman Kebunku)
   Future<List<AreaModel>> fetchMyAreas() async {
     try {
       final response = await dio.get("/area");
@@ -25,13 +21,9 @@ class AreaService extends ApiService {
 
   Future<List<DashboardAreaModel>> getDashboardSummary() async {
     try {
-      final response = await dio.get(
-        "/dashboard/summary",
-      ); // Jalur endpoint Express-mu
+      final response = await dio.get("/dashboard/summary");
 
       if (response.data['success'] == true) {
-        // Ingat, response kamu berwujud: response.data['data']['data'] atau response.data['data']
-        // Sesuaikan dengan return pembungkus dari controller Node.js kamu
         List rawList = await response.data['data']['data'];
         log(rawList.toString());
         return rawList
@@ -45,7 +37,6 @@ class AreaService extends ApiService {
     }
   }
 
-  // Tambah area baru
   Future<bool> addArea(String nama) async {
     try {
       final response = await dio.post("/area", data: {"nama": nama});
@@ -55,7 +46,6 @@ class AreaService extends ApiService {
     }
   }
 
-  // Update area (Nama atau Status)
   Future<bool> updateArea(int idArea, String nama, bool status) async {
     try {
       final response = await dio.put(
@@ -68,7 +58,6 @@ class AreaService extends ApiService {
     }
   }
 
-  // Hapus area
   Future<bool> deleteArea(int idArea) async {
     try {
       final response = await dio.delete("/area/$idArea");

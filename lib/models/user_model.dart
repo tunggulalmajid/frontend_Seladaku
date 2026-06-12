@@ -4,10 +4,10 @@ class UserModel {
   final String email;
   final String? nomorTelepon;
   final String? alamat;
-  final String? foto; // URL dari Cloudinary
-  final String? idTelegram; // ID Numerik buat bot
-  final double? latitude; // Untuk API Cuaca
-  final double? longitude; // Untuk API Cuaca
+  final String? foto; 
+  final String? idTelegram; 
+  final double? latitude; 
+  final double? longitude; 
 
   UserModel({
     required this.idUser,

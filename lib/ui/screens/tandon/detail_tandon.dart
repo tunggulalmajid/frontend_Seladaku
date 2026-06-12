@@ -1,24 +1,26 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:frontend_seladaku/models/area_model.dart';
-import 'package:frontend_seladaku/providers/area_provider.dart';
-import 'package:frontend_seladaku/providers/riwayat_provider.dart';
-import 'package:frontend_seladaku/ui/widgets/w_sensor_chart.dart';
-import 'package:frontend_seladaku/ui/widgets/w_notification_tile.dart';
+import 'package:seladaku/models/area_model.dart';
+import 'package:seladaku/providers/area_provider.dart';
+import 'package:seladaku/providers/riwayat_provider.dart';
+import 'package:seladaku/ui/widgets/w_sensor_chart.dart';
+import 'package:seladaku/ui/widgets/w_notification_tile.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
-import 'package:frontend_seladaku/models/tandon_model.dart';
-import 'package:frontend_seladaku/providers/tandon_provider.dart';
-import 'package:frontend_seladaku/services/socket_service.dart';
-import 'package:frontend_seladaku/ui/widgets/w_confirmation_delete_dialog.dart';
-import 'package:frontend_seladaku/ui/widgets/w_data_tandon.dart';
-import 'package:frontend_seladaku/ui/widgets/w_success_dialog.dart';
-import 'package:frontend_seladaku/ui/widgets/w_tandon_card.dart';
-import 'package:frontend_seladaku/ui/widgets/w_text.dart';
-import 'package:frontend_seladaku/ui/widgets/w_setting_tile.dart';
-import 'package:frontend_seladaku/ui/widgets/w_button.dart';
-import 'package:frontend_seladaku/utils/app_colors.dart';
-import 'package:frontend_seladaku/utils/app_routes.dart';
+import 'package:seladaku/models/tandon_model.dart';
+import 'package:seladaku/providers/tandon_provider.dart';
+import 'package:seladaku/services/socket_service.dart';
+import 'package:seladaku/ui/widgets/w_confirmation_delete_dialog.dart';
+import 'package:seladaku/ui/widgets/w_data_tandon.dart';
+import 'package:seladaku/ui/widgets/w_success_dialog.dart';
+
+import 'package:seladaku/ui/widgets/w_tandon_card.dart';
+import 'package:seladaku/ui/widgets/w_text.dart';
+import 'package:seladaku/ui/widgets/w_setting_tile.dart';
+import 'package:seladaku/ui/widgets/w_button.dart';
+import 'package:seladaku/utils/app_colors.dart';
+import 'package:seladaku/utils/app_routes.dart';
 
 class DetailTandon extends StatefulWidget {
   const DetailTandon({super.key});
@@ -256,18 +258,82 @@ class _DetailTandonState extends State<DetailTandon> {
                   _sendManualAction(tandon, target, val);
                 },
               ),
+
               WNotificationTile(
                 switchValue: tandon.isNotifAktif,
-                onSwitchChanged: (value) {
-                  prov.updateTandonFromSocket(tandon.idTandon, {
-                    'is_notif_aktif': value,
-                  });
-                  prov.updateTandon(tandon.idTandon, {
-                    'is_notif_aktif': value ? 1 : 0,
-                  });
+                onSwitchChanged: (value) async {
+                  final fcm = FirebaseMessaging.instance;
+
+                  if (value == true) {
+                    NotificationSettings settings = await fcm.requestPermission(
+                      alert: true,
+                      badge: true,
+                      sound: true,
+                    );
+
+                    if (settings.authorizationStatus ==
+                        AuthorizationStatus.authorized) {
+                      String? token = await fcm.getToken();
+                      if (token != null) {
+                        bool apiSuccess = await prov.simpanFcmTokenKeBackend(
+                          token,
+                          tandon.idTandon,
+                        );
+
+                        if (mounted && apiSuccess) {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (ctx) => WSuccessDialog(
+                              message: "Peringatan Tandon berhasil diaktifkan!",
+                              onOkPressed: () => Navigator.pop(ctx),
+                            ),
+                          );
+                        }
+                      }
+                    } else {
+                      prov.updateTandonFromSocket(tandon.idTandon, {
+                        'is_notif_aktif': false,
+                      });
+                      if (mounted) {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (ctx) => WSuccessDialog(
+                            message:
+                                "Gagal: Izin notifikasi sistem ditolak oleh perangkat.",
+                            onOkPressed: () => Navigator.pop(ctx),
+                          ),
+                        );
+                      }
+                    }
+                  } else {
+                    bool apiSuccess = await prov.hapusFcmTokenDariBackend(
+                      tandon.idTandon,
+                    );
+
+                    if (mounted && apiSuccess) {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (ctx) => WSuccessDialog(
+                          message:
+                              "Notifikasi peringatan tandon dinonaktifkan.",
+                          onOkPressed: () => Navigator.pop(ctx),
+                        ),
+                      );
+                    }
+                  }
                 },
                 onPressed: () {
-                  log("Membuka pengaturan parameter threshold");
+                  log(
+                    "Membuka pengaturan parameter threshold untuk ${tandon.namaTandon}",
+                  );
+                  Navigator.pushNamed(
+                    context,
+                    AppRoutes.aturParameter,
+                    arguments: {"tandon": tandon},
+                  );
                 },
               ),
               const SizedBox(height: 5),
@@ -402,12 +468,9 @@ class _DetailTandonState extends State<DetailTandon> {
                               ],
                             ),
                             const SizedBox(height: 12),
-                            SizedBox(
-                              height: 140,
-                              child: WSensorChart(
-                                data: riwayatProv.listDataGrafik,
-                                jenisSensor: "ph",
-                              ),
+                            PlatformAgregasiSensorChart(
+                              riwayatProv: riwayatProv,
+                              tipe: "ph",
                             ),
                             const Padding(
                               padding: EdgeInsets.symmetric(vertical: 15.0),
@@ -432,12 +495,9 @@ class _DetailTandonState extends State<DetailTandon> {
                               ],
                             ),
                             const SizedBox(height: 12),
-                            SizedBox(
-                              height: 140,
-                              child: WSensorChart(
-                                data: riwayatProv.listDataGrafik,
-                                jenisSensor: "ppm",
-                              ),
+                            PlatformAgregasiSensorChart(
+                              riwayatProv: riwayatProv,
+                              tipe: "ppm",
                             ),
                             const Padding(
                               padding: EdgeInsets.symmetric(vertical: 15.0),
@@ -458,12 +518,9 @@ class _DetailTandonState extends State<DetailTandon> {
                               ],
                             ),
                             const SizedBox(height: 12),
-                            SizedBox(
-                              height: 140,
-                              child: WSensorChart(
-                                data: riwayatProv.listDataGrafik,
-                                jenisSensor: "volume",
-                              ),
+                            PlatformAgregasiSensorChart(
+                              riwayatProv: riwayatProv,
+                              tipe: "volume",
                             ),
                           ],
                         ],
@@ -476,6 +533,24 @@ class _DetailTandonState extends State<DetailTandon> {
           );
         },
       ),
+    );
+  }
+}
+
+class PlatformAgregasiSensorChart extends StatelessWidget {
+  final RiwayatProvider riwayatProv;
+  final String tipe;
+  const PlatformAgregasiSensorChart({
+    super.key,
+    required this.riwayatProv,
+    required this.tipe,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 140,
+      child: WSensorChart(data: riwayatProv.listDataGrafik, jenisSensor: tipe),
     );
   }
 }

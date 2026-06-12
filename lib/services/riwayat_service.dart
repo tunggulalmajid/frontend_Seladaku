@@ -1,6 +1,6 @@
 import 'dart:developer';
-import 'package:frontend_seladaku/models/riwayat_grafik_model.dart';
-import 'package:frontend_seladaku/services/api_service.dart';
+import 'package:seladaku/models/riwayat_grafik_model.dart';
+import 'package:seladaku/services/api_service.dart';
 
 class RiwayatService extends ApiService {
   Future<List<RiwayatGrafikModel>> getGrafikRiwayat(

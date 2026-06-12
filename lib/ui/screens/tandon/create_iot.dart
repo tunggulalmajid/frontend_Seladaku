@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:frontend_seladaku/providers/tandon_provider.dart';
-import 'package:frontend_seladaku/ui/widgets/w_success_dialog.dart';
-import 'package:frontend_seladaku/ui/widgets/w_failed_dialog.dart';
-import 'package:frontend_seladaku/ui/widgets/w_button.dart';
-import 'package:frontend_seladaku/ui/widgets/w_text.dart';
-import 'package:frontend_seladaku/ui/widgets/w_text_field.dart';
-import 'package:frontend_seladaku/utils/app_colors.dart';
+import 'package:seladaku/providers/tandon_provider.dart';
+import 'package:seladaku/ui/widgets/w_success_dialog.dart';
+import 'package:seladaku/ui/widgets/w_failed_dialog.dart';
+import 'package:seladaku/ui/widgets/w_button.dart';
+import 'package:seladaku/ui/widgets/w_text.dart';
+import 'package:seladaku/ui/widgets/w_text_field.dart';
+import 'package:seladaku/utils/app_colors.dart';
 
 class CreateIot extends StatefulWidget {
   const CreateIot({super.key});
@@ -25,7 +25,7 @@ class _CreateIotState extends State<CreateIot> {
     super.didChangeDependencies();
     final args = ModalRoute.of(context)?.settings.arguments;
 
-    // Menangkap idTandon yang dikirim dari halaman DetailTandon via Map arguments
+    
     if (args is Map<String, dynamic> && idTandon == null) {
       setState(() {
         idTandon = args["idTandon"];
@@ -48,12 +48,12 @@ class _CreateIotState extends State<CreateIot> {
         builder: (c) => WSuccessDialog(
           message: "Perangkat IoT berhasil dihubungkan",
           onOkPressed: () {
-            Navigator.pop(c); // Tutup popup sukses
+            Navigator.pop(c); 
           },
         ),
       );
 
-      // Kembali ke Detail Tandon. Tombol otomatis hilang & berganti jadi grafik!
+      
       if (mounted) Navigator.pop(context);
     } else {
       if (mounted) {
@@ -114,7 +114,7 @@ class _CreateIotState extends State<CreateIot> {
               ),
               const SizedBox(height: 30),
 
-              // Tampilkan loading indicator pas lagi nembak API backend
+              
               Consumer<TandonProvider>(
                 builder: (context, prov, _) {
                   return prov.isLoading

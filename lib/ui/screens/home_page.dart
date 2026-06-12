@@ -1,14 +1,15 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:frontend_seladaku/providers/auth_provider.dart';
-import 'package:frontend_seladaku/providers/area_provider.dart';
-import 'package:frontend_seladaku/ui/widgets/w_home_header.dart';
-import 'package:frontend_seladaku/ui/widgets/w_null_kebuntandon.dart';
-import 'package:frontend_seladaku/ui/widgets/w_tandon_card.dart';
-import 'package:frontend_seladaku/ui/widgets/w_text.dart';
-import 'package:frontend_seladaku/ui/widgets/w_weather_card.dart';
-import 'package:frontend_seladaku/utils/app_routes.dart';
+import 'package:seladaku/providers/auth_provider.dart';
+import 'package:seladaku/providers/area_provider.dart';
+import 'package:seladaku/providers/notifikasi_provider.dart'; 
+import 'package:seladaku/ui/widgets/w_home_header.dart';
+import 'package:seladaku/ui/widgets/w_null_kebuntandon.dart';
+import 'package:seladaku/ui/widgets/w_tandon_card.dart';
+import 'package:seladaku/ui/widgets/w_text.dart';
+import 'package:seladaku/ui/widgets/w_weather_card.dart';
+import 'package:seladaku/utils/app_routes.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -19,14 +20,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // CATATAN: initState dihapus total agar tidak terjadi double fetch data saat pertama kali aplikasi dibuka.
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        
         context.read<AreaProvider>().fetchDashboardData();
+        context
+            .read<NotifikasiProvider>()
+            .fetchNotifikasi(); 
       }
     });
   }
@@ -35,32 +38,43 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: RefreshIndicator(
-        // FITUR PULL-TO-REFRESH: Tarik layar ke bawah untuk refresh paksa data dashboard
-        onRefresh: () => context.read<AreaProvider>().fetchDashboardData(),
+        
+        onRefresh: () async {
+          await Future.wait([
+            context.read<AreaProvider>().fetchDashboardData(),
+            context.read<NotifikasiProvider>().fetchNotifikasi(),
+          ]);
+        },
         child: SingleChildScrollView(
-          // AlwaysScrollableScrollPhysics wajib ada agar RefreshIndicator tetap aktif meskipun isi list masih sedikit/kosong
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
               const SizedBox(height: 20),
 
-              // 1. Bagian Header Pengguna (Halo, Yanto)
-              Consumer<AuthProvider>(
-                builder: (context, authProv, child) {
+              
+              Consumer2<AuthProvider, NotifikasiProvider>(
+                builder: (context, authProv, notifProv, child) {
                   String name = authProv.user != null
                       ? authProv.user!.nama.split(" ")[0]
                       : "...";
+
                   return WHomeHeader(
                     userName: name,
-                    onNotificationTap: () {},
-                    notificationCount:
-                        7, // Sesuai dengan mockup Figma badge merah angka '7'
+                    onNotificationTap: () {
+                      
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.notification,
+                      ); 
+                    },
+                    
+                    notificationCount: notifProv.totalUnread,
                   );
                 },
               ),
 
               const SizedBox(height: 25),
-              WWeatherCard(hasLocation: true),
+              const WWeatherCard(),
               const SizedBox(height: 25),
 
               Padding(
@@ -77,10 +91,9 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
 
-              // 2. Konten Dinamis Pembungkus Kebun dan Tandon Bersarang
+              
               Consumer<AreaProvider>(
                 builder: (context, areaProv, child) {
-                  // State Loading Utama
                   if (areaProv.isDashboardLoading) {
                     return const Center(
                       child: Padding(
@@ -90,7 +103,6 @@ class _HomePageState extends State<HomePage> {
                     );
                   }
 
-                  // State Jika Belum Memiliki Kebun Sama Sekali
                   if (areaProv.listDashboard.isEmpty) {
                     return WNullKebuntandon(
                       keterangan: "Belum Ada Kebun",
@@ -100,7 +112,6 @@ class _HomePageState extends State<HomePage> {
                     );
                   }
 
-                  // Render Kebun Bertingkat Maksimal 3 Kebun
                   return ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -125,13 +136,11 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ],
                         ),
-                        // Material + InkWell dipasang agar efek ripple/splash saat ditekan terlihat rapi mengikuti lengkungan border
                         child: Material(
                           color: Colors.transparent,
                           child: InkWell(
                             borderRadius: BorderRadius.circular(25),
                             onTap: () {
-                              // KLIK BLOK KEBUN: Menerbangkan user ke halaman list tandon (Detail Area)
                               Navigator.pushNamed(
                                 context,
                                 AppRoutes.tandonIndex,
@@ -146,7 +155,6 @@ class _HomePageState extends State<HomePage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Judul Nama Kebun
                                   Padding(
                                     padding: const EdgeInsets.only(
                                       left: 20,
@@ -159,7 +167,6 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ),
 
-                                  // Validasi Jika Kebun Terdaftar Namun Belum Ditambahkan Tandon di Dalamnya
                                   if (kebun.listTandon.isEmpty)
                                     const Padding(
                                       padding: EdgeInsets.symmetric(
@@ -173,7 +180,6 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     )
                                   else
-                                    // Render List Tandon Maksimal 2 Buah per Kebun
                                     ListView.builder(
                                       shrinkWrap: true,
                                       physics:
@@ -182,10 +188,6 @@ class _HomePageState extends State<HomePage> {
                                       itemBuilder: (context, indexTandon) {
                                         final tandon =
                                             kebun.listTandon[indexTandon];
-                                        log(
-                                          "Log sensor realtime tandon ${tandon.namaTandon} -> pH: ${tandon.ph}, PPM: ${tandon.ppm}, Vol: ${tandon.volume}",
-                                        );
-
                                         return InkWell(
                                           onTap: () {
                                             Navigator.pushNamed(
@@ -201,7 +203,6 @@ class _HomePageState extends State<HomePage> {
                                             padding: const EdgeInsets.only(
                                               bottom: 8.0,
                                             ),
-                                            // WTandonCard bawaan proyekmu tanpa perlu dimodifikasi
                                             child: WTandonCard(
                                               tandon: tandon,
                                               namaKebun: kebun.namaArea,

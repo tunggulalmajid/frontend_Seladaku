@@ -1,14 +1,14 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:frontend_seladaku/models/tandon_model.dart';
-import 'package:frontend_seladaku/providers/area_provider.dart';
-import 'package:frontend_seladaku/providers/tandon_provider.dart';
-import 'package:frontend_seladaku/ui/widgets/w_button.dart';
-import 'package:frontend_seladaku/ui/widgets/w_failed_dialog.dart';
-import 'package:frontend_seladaku/ui/widgets/w_success_dialog.dart';
-import 'package:frontend_seladaku/ui/widgets/w_text.dart';
-import 'package:frontend_seladaku/ui/widgets/w_text_field.dart';
-import 'package:frontend_seladaku/utils/app_colors.dart';
+import 'package:seladaku/models/tandon_model.dart';
+import 'package:seladaku/providers/area_provider.dart';
+import 'package:seladaku/providers/tandon_provider.dart';
+import 'package:seladaku/ui/widgets/w_button.dart';
+import 'package:seladaku/ui/widgets/w_failed_dialog.dart';
+import 'package:seladaku/ui/widgets/w_success_dialog.dart';
+import 'package:seladaku/ui/widgets/w_text.dart';
+import 'package:seladaku/ui/widgets/w_text_field.dart';
+import 'package:seladaku/utils/app_colors.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -20,7 +20,7 @@ class CreateTandon extends StatefulWidget {
 }
 
 class _CreateTandonState extends State<CreateTandon> {
-  // GlobalKey untuk validasi Form
+  
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController namaTandonController = TextEditingController();
@@ -28,10 +28,10 @@ class _CreateTandonState extends State<CreateTandon> {
 
   TandonModel? tandonToEdit;
   int? idAreaForCreate;
-  DateTime? selectedDate; // State utama untuk tanggal
+  DateTime? selectedDate; 
   bool _isSubmitting = false;
 
-  // Helper untuk format tanggal ke MySQL YYYY-MM-DD HH:mm:ss
+  
   String _formatToMySQL(DateTime date) {
     return DateFormat('yyyy-MM-dd HH:mm:ss').format(date);
   }
@@ -42,12 +42,12 @@ class _CreateTandonState extends State<CreateTandon> {
     final args = ModalRoute.of(context)?.settings.arguments;
 
     if (args is TandonModel) {
-      // Jika data tandon berbeda dengan yang sedang dipegang state, update controllernya
+      
       if (tandonToEdit == null || tandonToEdit!.idTandon != args.idTandon) {
         tandonToEdit = args;
         namaTandonController.text = tandonToEdit!.namaTandon;
 
-        // Pastikan konversi ke Local agar tidak berkurang 1 hari saat ditampilkan
+        
         selectedDate = tandonToEdit!.tanggalTanam.toLocal();
         tanggalController.text = DateFormat(
           'dd MMMM yyyy',
@@ -58,7 +58,7 @@ class _CreateTandonState extends State<CreateTandon> {
     }
   }
 
-  // Fungsi memunculkan kalender (DatePicker)
+  
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -77,7 +77,7 @@ class _CreateTandonState extends State<CreateTandon> {
 
     if (picked != null) {
       setState(() {
-        // Update state internal dan tampilan controller
+        
         selectedDate = picked;
         tanggalController.text = DateFormat('dd MMMM yyyy').format(picked);
       });
@@ -86,10 +86,10 @@ class _CreateTandonState extends State<CreateTandon> {
   }
 
   void _handleSave() async {
-    // 1. Validasi Form (TextFormField)
+    
     if (!_formKey.currentState!.validate()) return;
 
-    // 2. Validasi Tanggal
+    
     if (selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Silakan pilih tanggal tanam")),
@@ -102,12 +102,12 @@ class _CreateTandonState extends State<CreateTandon> {
     bool sukses = false;
 
     try {
-      // Gunakan format MySQL untuk menghindari Error 500 (Incorrect date value)
-      // Gunakan toLocal() untuk memastikan tanggal konsisten
+      
+      
       String formattedDate = _formatToMySQL(selectedDate!.toLocal());
 
       if (tandonToEdit != null) {
-        // --- MODE EDIT (PATCH) ---
+        
         Map<String, dynamic> data = {
           "nama_tandon": namaTandonController.text,
           "tanggal_tanam": formattedDate,
@@ -115,7 +115,7 @@ class _CreateTandonState extends State<CreateTandon> {
         log("Mengirim data update: $data");
         sukses = await tandonProv.updateTandon(tandonToEdit!.idTandon, data);
       } else {
-        // --- MODE CREATE (POST) ---
+        
         if (idAreaForCreate != null) {
           sukses = await tandonProv.createTandon(
             idArea: idAreaForCreate!,
@@ -136,8 +136,8 @@ class _CreateTandonState extends State<CreateTandon> {
                   ? "Perubahan berhasil disimpan"
                   : "Tandon baru berhasil ditambahkan",
               onOkPressed: () {
-                Navigator.pop(context); // Tutup Dialog
-                Navigator.pop(context); // Kembali ke halaman sebelumnya
+                Navigator.pop(context); 
+                Navigator.pop(context); 
               },
             ),
           );

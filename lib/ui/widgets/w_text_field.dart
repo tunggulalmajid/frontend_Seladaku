@@ -10,7 +10,8 @@ class WTextField extends StatefulWidget {
   final TextInputType? keyboardType;
   final bool readOnly;
   final VoidCallback? onTap;
-  final Widget? suffixIcon; // Opsional: Untuk icon peta atau lainnya
+  final Widget? suffixIcon;
+  final Widget? suffix;
 
   const WTextField({
     super.key,
@@ -22,6 +23,7 @@ class WTextField extends StatefulWidget {
     this.readOnly = false,
     this.onTap,
     this.suffixIcon,
+    this.suffix,
   });
 
   @override
@@ -58,7 +60,6 @@ class _WTextFieldState extends State<WTextField> {
           vertical: 16,
         ),
 
-        // Logika Suffix Icon: Tombol mata (password) diprioritaskan, baru custom icon
         suffixIcon: widget.isPassword
             ? IconButton(
                 icon: Icon(
@@ -69,7 +70,13 @@ class _WTextFieldState extends State<WTextField> {
               )
             : widget.suffixIcon,
 
-        errorStyle: GoogleFonts.poppins(color: Colors.red, fontSize: 12),
+        suffix: widget.suffix,
+
+        errorStyle: GoogleFonts.poppins(
+          color: AppColor.redStatus,
+          fontSize: 12,
+        ),
+
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -78,13 +85,15 @@ class _WTextFieldState extends State<WTextField> {
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: AppColor.primary, width: 2),
         ),
+
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.red),
+          borderSide: const BorderSide(color: AppColor.redStatus),
         ),
+
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.red, width: 2),
+          borderSide: const BorderSide(color: AppColor.redStatus, width: 2),
         ),
       ),
     );

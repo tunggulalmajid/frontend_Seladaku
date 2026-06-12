@@ -1,7 +1,6 @@
-// import 'package:dio/dio.dart';
 import 'dart:developer';
 
-import 'package:frontend_seladaku/models/tandon_model.dart';
+import 'package:seladaku/models/tandon_model.dart';
 import 'api_service.dart';
 
 class TandonService extends ApiService {
@@ -10,6 +9,7 @@ class TandonService extends ApiService {
       final response = await dio.get("/tandon/area/$idArea");
       if (response.data['success'] == true) {
         List data = response.data['data'];
+        log(data.toString());
         return data.map((e) => TandonModel.fromJson(e)).toList();
       }
       return [];
@@ -18,7 +18,6 @@ class TandonService extends ApiService {
     }
   }
 
-  // Tambah area baru
   Future<bool> addTandon(int idArea, String nama, tanggalTanam) async {
     try {
       final response = await dio.post(
@@ -37,7 +36,6 @@ class TandonService extends ApiService {
     }
   }
 
-  // Update area (Nama atau Status)
   Future<bool> updateTandon(
     int idTandon,
     Map<String, dynamic> dataPerubahan,
@@ -46,8 +44,7 @@ class TandonService extends ApiService {
       log("masuk ke service ");
       final response = await dio.patch(
         "/tandon/$idTandon",
-        data:
-            dataPerubahan, // Kirim map yang berisi kolom yang ingin diubah saja
+        data: dataPerubahan,
       );
       log(response.toString());
       return response.data['success'] == true;
@@ -57,17 +54,13 @@ class TandonService extends ApiService {
     }
   }
 
-  // --- TAMBAHAN ENDPOINT PAIRING DEVICE ---
   Future<bool> pairDevice(int idTandon, String deviceId) async {
     try {
       log("Menghubungkan device ke Tandon ID: $idTandon");
 
-      // Method diganti POST, URL disesuaikan dengan Swagger: /tandon/pair-device/{id}
       final response = await dio.post(
         "/tandon/pair-device/$idTandon",
-        data: {
-          "device_id": deviceId, // Sesuai dengan Example Value Request Body
-        },
+        data: {"device_id": deviceId},
       );
 
       log("Respon server: ${response.data}");
@@ -78,12 +71,36 @@ class TandonService extends ApiService {
     }
   }
 
-  // Hapus area
   Future<bool> deleteTandon(int idTandon) async {
     try {
       final response = await dio.delete("/tandon/$idTandon");
       return response.data['success'] == true;
     } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> registerFcmToken(int idTandon, String token) async {
+    try {
+      final response = await dio.post(
+        "/tandon/$idTandon/fcm-token",
+        data: {"fcm_token": token},
+      );
+      log("Respon registerFcmToken: ${response.data}");
+      return response.data['success'] == true;
+    } catch (e) {
+      log("Error registerFcmToken Service: $e");
+      return false;
+    }
+  }
+
+  Future<bool> unregisterFcmToken(int idTandon) async {
+    try {
+      final response = await dio.delete("/tandon/$idTandon/fcm-token");
+      log("Respon unregisterFcmToken: ${response.data}");
+      return response.data['success'] == true;
+    } catch (e) {
+      log("Error unregisterFcmToken Service: $e");
       return false;
     }
   }

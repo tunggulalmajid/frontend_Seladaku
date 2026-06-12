@@ -17,7 +17,7 @@ class AreaModel {
     return AreaModel(
       idArea: json['id_area'],
       nama: json['nama'] ?? '',
-      // Konversi status: MySQL (int 1/0) ke Flutter (bool)
+      
       status: json['status'] is int
           ? json['status'] == 1
           : (json['status'] ?? true),

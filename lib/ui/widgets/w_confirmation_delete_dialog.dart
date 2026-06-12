@@ -23,7 +23,6 @@ class WConfirmationDeleteDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Icon Warning
             Container(
               height: 80,
               width: 80,
@@ -38,23 +37,22 @@ class WConfirmationDeleteDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            // Title
+
             Text(
               title,
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            // Message
+
             Text(
               message,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 14, color: Colors.black54),
             ),
             const SizedBox(height: 25),
-            // Action Buttons
+
             Row(
               children: [
-                // Tombol Batal
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -73,7 +71,7 @@ class WConfirmationDeleteDialog extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
-                // Tombol Hapus
+
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // Wajib import provider
-import 'package:frontend_seladaku/providers/area_provider.dart'; // Import provider area
-import 'package:frontend_seladaku/ui/widgets/w_header.dart';
-import 'package:frontend_seladaku/ui/widgets/w_kebun_card.dart';
-import 'package:frontend_seladaku/ui/widgets/w_null_kebuntandon.dart';
-import 'package:frontend_seladaku/utils/app_colors.dart';
-import 'package:frontend_seladaku/utils/app_routes.dart';
+import 'package:provider/provider.dart';
+import 'package:seladaku/providers/area_provider.dart';
+import 'package:seladaku/ui/widgets/w_header.dart';
+import 'package:seladaku/ui/widgets/w_kebun_card.dart';
+import 'package:seladaku/ui/widgets/w_null_kebuntandon.dart';
+import 'package:seladaku/utils/app_colors.dart';
+import 'package:seladaku/utils/app_routes.dart';
 
 class KebunPage extends StatefulWidget {
   const KebunPage({super.key});
@@ -18,7 +18,7 @@ class _KebunPageState extends State<KebunPage> {
   @override
   void initState() {
     super.initState();
-    // Pemicu ambil data area pertama kali saat halaman dibuka
+
     Future.microtask(
       () => Provider.of<AreaProvider>(context, listen: false).fetchAreas(),
     );
@@ -31,8 +31,7 @@ class _KebunPageState extends State<KebunPage> {
         onRefresh: () =>
             Provider.of<AreaProvider>(context, listen: false).fetchAreas(),
         child: ListView(
-          physics:
-              const AlwaysScrollableScrollPhysics(), // Agar RefreshIndicator selalu aktif
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
             const SizedBox(height: 20),
             const WHeader(
@@ -41,10 +40,8 @@ class _KebunPageState extends State<KebunPage> {
             ),
             const SizedBox(height: 20),
 
-            // Menggunakan Consumer untuk mendengarkan perubahan di AreaProvider
             Consumer<AreaProvider>(
               builder: (context, areaProv, child) {
-                // 1. Tampilkan Loading saat data sedang ditarik
                 if (areaProv.isLoading) {
                   return const Center(
                     child: Padding(
@@ -54,7 +51,6 @@ class _KebunPageState extends State<KebunPage> {
                   );
                 }
 
-                // 2. Tampilkan Kondisi Kosong (Null State)
                 if (areaProv.areas.isEmpty) {
                   return const WNullKebuntandon(
                     keterangan: "Belum Ada Kebun",
@@ -64,16 +60,14 @@ class _KebunPageState extends State<KebunPage> {
                   );
                 }
 
-                // 3. Tampilkan List Kebun jika ada data
                 return Column(
                   children: areaProv.areas.map((area) {
                     return GestureDetector(
                       onTap: () {
-                        // Kirim data area ke halaman tandon jika perlu
                         Navigator.pushNamed(
                           context,
                           AppRoutes.tandonIndex,
-                          arguments: area, // Kirim object area yang diklik
+                          arguments: area,
                         );
                       },
                       child: WKebunCard(

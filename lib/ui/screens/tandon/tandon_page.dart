@@ -1,17 +1,17 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:frontend_seladaku/providers/tandon_provider.dart';
+import 'package:seladaku/providers/tandon_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:frontend_seladaku/providers/area_provider.dart';
-import 'package:frontend_seladaku/models/area_model.dart';
-import 'package:frontend_seladaku/ui/widgets/w_confirmation_delete_dialog.dart';
-import 'package:frontend_seladaku/ui/widgets/w_success_dialog.dart';
-import 'package:frontend_seladaku/ui/widgets/w_null_kebuntandon.dart';
-import 'package:frontend_seladaku/ui/widgets/w_tandon_card.dart';
-import 'package:frontend_seladaku/ui/widgets/w_text.dart';
-import 'package:frontend_seladaku/utils/app_colors.dart';
-import 'package:frontend_seladaku/utils/app_routes.dart';
+import 'package:seladaku/providers/area_provider.dart';
+import 'package:seladaku/models/area_model.dart';
+import 'package:seladaku/ui/widgets/w_confirmation_delete_dialog.dart';
+import 'package:seladaku/ui/widgets/w_success_dialog.dart';
+import 'package:seladaku/ui/widgets/w_null_kebuntandon.dart';
+import 'package:seladaku/ui/widgets/w_tandon_card.dart';
+import 'package:seladaku/ui/widgets/w_text.dart';
+import 'package:seladaku/utils/app_colors.dart';
+import 'package:seladaku/utils/app_routes.dart';
 
 class TandonPage extends StatefulWidget {
   const TandonPage({super.key});
@@ -70,21 +70,21 @@ class _TandonPageState extends State<TandonPage> {
         message:
             "Apakah Anda yakin ingin menghapus '${area.nama}'? Data tandon di dalamnya akan ikut terhapus.",
         onConfirm: () async {
-          // 1. Tutup dialog konfirmasi terlebih dahulu
+          
           Navigator.pop(dialogCtx);
 
-          // 2. Jalankan aksi hapus ke backend Express
+          
           bool sukses = await areaProv.removeArea(area.idArea);
 
           if (sukses && mounted) {
-            // 3. SEGERA KELUAR dari TandonPage ke KebunPage sebelum data ditarik ulang!
-            // Ini trik mendasar agar user tidak melihat penampakan data lama di latar belakang
+            
+            
             Navigator.pop(context);
 
-            // 4. Tarik data terbaru di latar belakang KebunPage
+            
             await areaProv.fetchAreas();
 
-            // 5. Tampilkan dialog sukses menggunakan konteks global yang aman di KebunPage
+            
             if (mounted) {
               showDialog(
                 context: context,
@@ -92,7 +92,7 @@ class _TandonPageState extends State<TandonPage> {
                 builder: (successCtx) => WSuccessDialog(
                   message: "Kebun berhasil dihapus",
                   onOkPressed: () {
-                    Navigator.pop(successCtx); // Tutup dialog sukses murni
+                    Navigator.pop(successCtx); 
                   },
                 ),
               );
@@ -109,7 +109,7 @@ class _TandonPageState extends State<TandonPage> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // Amankan data kebun reaktif agar selalu membaca perubahan nama ter-update dari AreaProvider global
+    
     final areaTerbaru = context.watch<AreaProvider>().areas.firstWhere(
       (a) => a.idArea == initialArea!.idArea,
       orElse: () => initialArea!,
@@ -120,7 +120,7 @@ class _TandonPageState extends State<TandonPage> {
         iconTheme: const IconThemeData(color: AppColor.text),
         toolbarHeight: 75,
         title: WText(
-          isi: areaTerbaru.nama, // FIXED: Reaktif membaca data ter-update
+          isi: areaTerbaru.nama, 
           fw: FontWeight.bold,
           ukuranFont: 23,
           color: AppColor.text,
@@ -174,12 +174,12 @@ class _TandonPageState extends State<TandonPage> {
                       arguments: {
                         "tandon": tandon,
                         "namaArea": areaTerbaru
-                            .nama, // FIXED: Mengirim nama kebun ter-update
+                            .nama, 
                       },
                     );
                   },
                   child: WTandonCard(
-                    namaKebun: areaTerbaru.nama, // FIXED: Reaktif sinkron
+                    namaKebun: areaTerbaru.nama, 
                     tandon: tandon,
                   ),
                 );

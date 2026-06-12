@@ -20,7 +20,6 @@ class ApiService {
   }
 
   void addInterceptor(Interceptor interceptor) {
-    // Pastikan ini barisnya benar
     dio.interceptors.add(interceptor);
     log("ApiService: Interceptor berhasil ditambahkan ke Dio!");
   }

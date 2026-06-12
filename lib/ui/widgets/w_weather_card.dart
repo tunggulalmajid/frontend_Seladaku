@@ -1,200 +1,280 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:seladaku/ui/screens/profile/map_picker_page.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:frontend_seladaku/utils/app_colors.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:seladaku/providers/weather_provider.dart';
+import 'package:seladaku/utils/app_colors.dart';
+import 'package:seladaku/utils/weather_helper.dart';
+import 'package:seladaku/ui/widgets/w_text.dart';
 
-class WWeatherCard extends StatelessWidget {
-  final bool hasLocation;
-  final Map<String, dynamic>?
-  weatherData; // Tempat menyimpan data cuaca dari API nanti
+class WWeatherCard extends StatefulWidget {
+  const WWeatherCard({super.key});
 
-  const WWeatherCard({super.key, required this.hasLocation, this.weatherData});
+  @override
+  State<WWeatherCard> createState() => _WWeatherCardState();
+}
+
+class _WWeatherCardState extends State<WWeatherCard> {
+  String _formattedTime = "";
+  String _formattedDate = "";
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateClock();
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) => _updateClock());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _updateClock() {
+    final now = DateTime.now();
+    if (mounted) {
+      setState(() {
+        _formattedTime = DateFormat('HH:mm').format(now);
+        _formattedDate = DateFormat('EEE dd-MM', 'id_ID').format(now);
+      });
+    }
+  }
+
+  Future<void> _bukaMapPicker(
+    BuildContext context,
+    WeatherProvider prov,
+  ) async {
+    final Map<String, dynamic>? hasilPeta = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const MapPickerPage()),
+    );
+
+    if (hasilPeta != null) {
+      double latitude = hasilPeta['lat'];
+      double longitude = hasilPeta['lon'];
+      String alamatPenuh = hasilPeta['address'];
+
+      List<String> komponenAlamat = alamatPenuh.split(', ');
+      String namaKotaSingkat = "Kebun Hidroponik";
+      String namaKabupatenDinamis = "Kabupaten Jember, Jawa Timur";
+
+      if (komponenAlamat.length > 2) {
+        namaKotaSingkat = komponenAlamat[komponenAlamat.length - 2];
+        namaKabupatenDinamis = komponenAlamat[komponenAlamat.length - 1];
+      } else if (komponenAlamat.isNotEmpty) {
+        namaKotaSingkat = komponenAlamat.last;
+        namaKabupatenDinamis = alamatPenuh;
+      }
+
+      prov.updateLokasiCuaca(
+        namaKota: namaKotaSingkat,
+        latitude: latitude,
+        longitude: longitude,
+        alamatDetail: namaKabupatenDinamis,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final weatherProv = context.watch<WeatherProvider>();
+
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 20),
+      margin: const EdgeInsets.symmetric(horizontal: 15),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(25),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 5,
-            offset: const Offset(1, 5),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      // Jika hasLocation true tampilkan cuaca, jika false tampilkan empty state
-      child: hasLocation ? _buildWeatherContent() : _buildEmptyState(),
+      child: !weatherProv.hasLocation
+          ? _buildEmptyState(context, weatherProv)
+          : weatherProv.isLoading
+          ? const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: CircularProgressIndicator(color: AppColor.primary),
+              ),
+            )
+          : _buildWeatherState(context, weatherProv),
     );
   }
 
-  // --- TAMPILAN 1: BELUM ADA LOKASI ---
-  Widget _buildEmptyState() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.location_off_rounded,
-              size: 40,
-              color: Colors.grey,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            "Belum Ada Lokasi",
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColor.text,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Tambahkan lokasi untuk melihat\nperkiraan cuaca",
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[600]),
-          ),
-          const SizedBox(height: 25),
-          SizedBox(
-            width: 200,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColor.primary,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                elevation: 0,
-              ),
-              child: Text(
-                "Tambah Lokasi",
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- TAMPILAN 2: SUDAH ADA LOKASI ---
-  Widget _buildWeatherContent() {
+  Widget _buildEmptyState(BuildContext context, WeatherProvider prov) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(25),
-          child: Column(
+        CircleAvatar(
+          radius: 30,
+          backgroundColor: Colors.grey.shade200,
+          child: const Icon(
+            Icons.cloud_off_rounded,
+            color: Colors.grey,
+            size: 30,
+          ),
+        ),
+        const SizedBox(height: 15),
+        const WText(
+          isi: "Belum Ada Lokasi",
+          fw: FontWeight.bold,
+          ukuranFont: 18,
+        ),
+        const SizedBox(height: 5),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            "Tambahkan lokasi untuk melihat perkiraan cuaca",
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey, fontSize: 13),
+          ),
+        ),
+        const SizedBox(height: 15),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColor.primary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+          ),
+          onPressed: () => _bukaMapPicker(context, prov),
+          child: const WText(
+            isi: "Tambah Lokasi",
+            color: Colors.white,
+            fw: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWeatherState(BuildContext context, WeatherProvider prov) {
+    final data = prov.weatherData!;
+    final teksCuaca = WeatherHelper.getInfoCuaca(data.currentConditionCode);
+    final ikonCuaca = WeatherHelper.getIkonCuaca(data.currentConditionCode);
+
+    return InkWell(
+      onTap: () => Navigator.pushNamed(context, '/detail-cuaca'),
+      borderRadius: BorderRadius.circular(25),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.wb_sunny_outlined, size: 20),
-                          const SizedBox(width: 5),
-                          Text(
-                            "Cerah",
-                            style: GoogleFonts.poppins(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        "27°",
-                        style: GoogleFonts.poppins(
-                          fontSize: 60,
-                          fontWeight: FontWeight.bold,
-                          height: 1.2,
-                        ),
-                      ),
-                      Text(
-                        "30° / 24°",
-                        style: GoogleFonts.poppins(color: Colors.grey),
+                      Icon(ikonCuaca, color: Colors.grey.shade600, size: 18),
+                      const SizedBox(width: 5),
+                      WText(
+                        isi: teksCuaca,
+                        ukuranFont: 14,
+                        color: Colors.grey.shade600,
                       ),
                     ],
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        "15:00",
-                        style: GoogleFonts.poppins(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  const SizedBox(height: 5),
+                  Text(
+                    "${data.currentTemp.toStringAsFixed(0)}°",
+                    style: GoogleFonts.poppins(
+                      fontSize: 55,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  WText(
+                    isi:
+                        "${data.maxTemp.toStringAsFixed(0)}° / ${data.minTemp.toStringAsFixed(0)}°",
+                    ukuranFont: 14,
+                    color: Colors.grey,
+                  ),
+                ],
+              ),
+
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    _formattedTime,
+                    style: GoogleFonts.poppins(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  WText(
+                    isi: _formattedDate,
+                    ukuranFont: 12,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(height: 15),
+
+                  WText(
+                    isi: data.namaKota,
+                    ukuranFont: 14,
+                    fw: FontWeight.bold,
+                    color: Colors.grey.shade700,
+                  ),
+
+                  SizedBox(
+                    width: 160,
+                    child: Text(
+                      prov.alamatLengkapAktif!,
+                      textAlign: TextAlign.right,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade500,
                       ),
-                      Text(
-                        "Sen 01-04",
-                        style: GoogleFonts.poppins(color: Colors.grey),
-                      ),
-                      const SizedBox(height: 30),
-                      Text(
-                        "Jember",
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
             ],
           ),
-        ),
-        // Bagian Bawah (Forecast)
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          decoration: BoxDecoration(
-            color: AppColor.primary,
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(15),
-              bottomRight: Radius.circular(15),
+          const SizedBox(height: 15),
+
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColor.primary,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: data.forecast.skip(1).take(4).map((f) {
+                DateTime parsedDate = DateTime.parse(f.tanggal);
+                String namaHari = DateFormat('EEE', 'id_ID').format(parsedDate);
+                return Row(
+                  children: [
+                    WText(
+                      isi: "$namaHari ",
+                      color: Colors.white,
+                      ukuranFont: 12,
+                    ),
+                    Icon(
+                      WeatherHelper.getIkonCuaca(f.conditionCode),
+                      color: Colors.white,
+                      size: 14,
+                    ),
+                  ],
+                );
+              }).toList(),
             ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildForecastItem("Sel", Icons.wb_sunny_outlined),
-              _buildForecastItem("Rab", Icons.cloud_outlined),
-              _buildForecastItem("Kam", Icons.beach_access_rounded),
-              _buildForecastItem("Jum", Icons.thunderstorm_outlined),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildForecastItem(String day, IconData icon) {
-    return Row(
-      children: [
-        Text(
-          day,
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(width: 4),
-        Icon(icon, color: Colors.white, size: 18),
-      ],
+        ],
+      ),
     );
   }
 }

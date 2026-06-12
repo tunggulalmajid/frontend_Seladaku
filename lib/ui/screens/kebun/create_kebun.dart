@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_seladaku/ui/widgets/w_success_dialog.dart';
+import 'package:seladaku/ui/widgets/w_success_dialog.dart';
 import 'package:provider/provider.dart';
-import 'package:frontend_seladaku/providers/area_provider.dart';
-import 'package:frontend_seladaku/models/area_model.dart';
-import 'package:frontend_seladaku/ui/widgets/w_button.dart';
-import 'package:frontend_seladaku/ui/widgets/w_failed_dialog.dart';
-import 'package:frontend_seladaku/ui/widgets/w_text.dart';
-import 'package:frontend_seladaku/ui/widgets/w_text_field.dart';
-import 'package:frontend_seladaku/utils/app_colors.dart';
+import 'package:seladaku/providers/area_provider.dart';
+import 'package:seladaku/models/area_model.dart';
+import 'package:seladaku/ui/widgets/w_button.dart';
+import 'package:seladaku/ui/widgets/w_failed_dialog.dart';
+import 'package:seladaku/ui/widgets/w_text.dart';
+import 'package:seladaku/ui/widgets/w_text_field.dart';
+import 'package:seladaku/utils/app_colors.dart';
 
 class CreateKebun extends StatefulWidget {
   const CreateKebun({super.key});
@@ -20,13 +20,13 @@ class _CreateKebunState extends State<CreateKebun> {
   final TextEditingController namaKebunController = TextEditingController();
   AreaModel? areaToEdit;
   final _formKey = GlobalKey<FormState>();
-  bool _isInitialized = false; // FIXED: Kunci pengaman didChangeDependencies
+  bool _isInitialized = false; 
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // FIXED: Mengunci logika agar hanya berjalan sekali saja saat halaman dibuka pertama kali
+    
     if (!_isInitialized) {
       final args = ModalRoute.of(context)?.settings.arguments;
 
@@ -34,7 +34,7 @@ class _CreateKebunState extends State<CreateKebun> {
         areaToEdit = args;
         namaKebunController.text = areaToEdit!.nama;
       }
-      _isInitialized = true; // Kunci diaktifkan
+      _isInitialized = true; 
     }
   }
 
@@ -60,7 +60,7 @@ class _CreateKebunState extends State<CreateKebun> {
     }
 
     if (sukses && mounted) {
-      // FIXED: Tarik data terbaru dari API Express ke provider utama sebelum memicu popup sukses
+      
       await areaProv.fetchAreas();
 
       if (mounted) {

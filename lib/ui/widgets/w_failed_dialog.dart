@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_seladaku/utils/app_colors.dart';
+import 'package:seladaku/utils/app_colors.dart';
 
 class WFailedDialog extends StatelessWidget {
   final String message;
@@ -25,15 +25,13 @@ class WFailedDialog extends StatelessWidget {
           borderRadius: BorderRadius.circular(25),
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min, // Sesuai konten
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Icon Berhasil (Circle dengan Check)
             Container(
               height: 80,
               width: 80,
               decoration: BoxDecoration(
-                color:
-                    AppColor.redLightStatus, // Latar belakang lingkaran tipis
+                color: AppColor.redLightStatus,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -58,7 +56,7 @@ class WFailedDialog extends StatelessWidget {
               style: const TextStyle(fontSize: 14, color: Colors.black54),
             ),
             const SizedBox(height: 24),
-            // Tombol OK
+
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

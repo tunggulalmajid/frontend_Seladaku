@@ -5,7 +5,6 @@ class SocketService {
   late IO.Socket socket;
 
   void connect() {
-    // Sesuaikan URL dengan IP backend Anda
     socket = IO.io(
       'http://seladaku.kodetalma.my.id',
       IO.OptionBuilder()
@@ -19,7 +18,6 @@ class SocketService {
     socket.onConnectError((data) => log('⚠️ Koneksi Error: $data'));
   }
 
-  // Mendengarkan update data dari backend
   void listenToSensor(int idTandon, Function(Map<String, dynamic>) onData) {
     socket.on('sensor-$idTandon', (data) {
       log('📡 Data sensor masuk: $data');
@@ -27,11 +25,10 @@ class SocketService {
     });
   }
 
-  // Mengirim perintah kontrol ke backend
   void sendControl({
     required String deviceId,
-    required String target, // 'pompa', 's1', 's2', atau 'mode'
-    required String command, // 'on', 'off', 'auto', atau 'manual'
+    required String target,
+    required String command,
   }) {
     final payload = {
       "device_id": deviceId,
